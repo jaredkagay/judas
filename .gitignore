@@ -25,4 +25,4 @@ dist-ssr
 
 .env
 
-backend/among_us.db
+*.py[cod]
