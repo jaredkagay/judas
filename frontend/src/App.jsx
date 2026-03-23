@@ -457,9 +457,7 @@ function App() {
 
       {view === 'host_auth' && (
         <HostAuth 
-          authenticateHost={authenticateHost} authMode={authMode} setAuthMode={setAuthMode} 
-          hostUsername={hostUsername} setHostUsername={setHostUsername} 
-          hostPassword={hostPassword} setHostPassword={setHostPassword} setView={setView} 
+          setHostId={setHostId} setHostUsername={setHostUsername} setView={setView} 
         />
       )}
 
