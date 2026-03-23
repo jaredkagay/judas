@@ -1,0 +1,81 @@
+/* frontend/src/components/VotingPhase.css */
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.voting-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.voting-alert-title {
+  color: #ff3333;
+  font-size: 28px;
+  animation: blink 1s infinite;
+}
+
+.voting-caller-info {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.voting-timer {
+  margin: 20px 0;
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.timer-active { color: #ffcc00; }
+.timer-expired { color: #ff3333; }
+
+.status-box {
+  margin-top: 50px;
+  padding: 20px;
+  background-color: #111;
+}
+
+.status-awaiting {
+  border: 1px solid #aaa;
+  color: #aaa;
+}
+
+.status-voted {
+  border: 1px solid #33ccff;
+  color: #33ccff;
+}
+
+.status-ghost {
+  border: 1px solid #666;
+  color: #aaa;
+}
+
+.targets-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.target-btn {
+  padding: 15px;
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  cursor: pointer;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.skip-btn {
+  padding: 15px;
+  background-color: #333;
+  color: #aaa;
+  border: 1px dashed #666;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 20px;
+}

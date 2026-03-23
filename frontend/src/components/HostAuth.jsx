@@ -1,50 +1,67 @@
-import { btnStyle, inputStyle } from '../styles';
+import { useState } from 'react';
+import './HostAuth.css';
 
-export default function HostAuth({ 
-  authenticateHost, 
-  authMode, 
-  setAuthMode, 
-  hostUsername, 
-  setHostUsername, 
-  hostPassword, 
-  setHostPassword, 
-  setView 
-}) {
+export default function HostAuth({ setHostId, setHostUsername, setView }) {
+  const [authMode, setAuthMode] = useState('login'); 
+  const [localUsername, setLocalUsername] = useState('');
+  const [localPassword, setLocalPassword] = useState('');
+
+  const authenticateHost = async (e) => {
+    e.preventDefault();
+    if (!localUsername || !localPassword) return;
+
+    const endpoint = authMode === 'login' ? '/login' : '/register';
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: localUsername, password: localPassword })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Authentication failed: ${errorData.detail}`);
+        return;
+      }
+
+      const data = await response.json();
+      
+      setHostId(data.host_id);
+      setHostUsername(data.username);
+      
+      localStorage.setItem('hostId', data.host_id);
+      localStorage.setItem('hostUsername', data.username);
+      
+      setView('host_dashboard'); 
+    } catch (error) {
+      console.error("Auth error:", error);
+      alert("Failed to connect to the server.");
+    }
+  };
+
   return (
-    <form onSubmit={authenticateHost} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '300px', margin: '0 auto', marginTop: '50px' }}>
-      <h2 style={{ color: '#aaa', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '10px', textTransform: 'uppercase' }}>
-        HOST {authMode}
-      </h2>
+    <form onSubmit={authenticateHost} className="auth-form">
+      <h2 className="auth-title">HOST {authMode}</h2>
       
       <input 
-        type="text" 
-        placeholder="USERNAME" 
-        value={hostUsername} 
-        onChange={(e) => setHostUsername(e.target.value)} 
-        style={inputStyle} 
-        required
+        type="text" placeholder="USERNAME" required className="input-field"
+        value={localUsername} onChange={(e) => setLocalUsername(e.target.value)} 
       />
       <input 
-        type="password" 
-        placeholder="PASSWORD" 
-        value={hostPassword} 
-        onChange={(e) => setHostPassword(e.target.value)} 
-        style={inputStyle} 
-        required
+        type="password" placeholder="PASSWORD" required className="input-field"
+        value={localPassword} onChange={(e) => setLocalPassword(e.target.value)} 
       />
       
-      <button type="submit" style={btnStyle}>
+      <button type="submit" className="btn">
         {authMode === 'login' ? 'ACCESS DASHBOARD' : 'INITIALIZE ACCOUNT'}
       </button>
       
-      <div 
-        onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-        style={{ textAlign: 'center', color: '#666', cursor: 'pointer', marginTop: '10px', textDecoration: 'underline' }}
-      >
+      <div onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="auth-toggle">
         {authMode === 'login' ? 'Need an account? Register here.' : 'Already have clearance? Log in.'}
       </div>
 
-      <button type="button" onClick={() => setView('home')} style={{ padding: '10px', backgroundColor: 'transparent', color: '#666', border: 'none', cursor: 'pointer', marginTop: '20px' }}>
+      <button type="button" onClick={() => setView('home')} className="cancel-btn auth-cancel">
         CANCEL
       </button>
     </form>

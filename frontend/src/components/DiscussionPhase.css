@@ -1,0 +1,85 @@
+/* frontend/src/components/DiscussionPhase.css */
+
+.discussion-container {
+  text-align: center;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.discussion-title {
+  color: #ffcc00;
+  font-size: 28px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.discussion-subtitle {
+  color: #aaa;
+  margin: 0;
+}
+
+.discussion-timer {
+  margin: 30px 0;
+  font-size: 64px;
+  font-weight: bold;
+}
+
+.timer-active {
+  color: #33ccff;
+  text-shadow: 0 0 10px rgba(51, 204, 255, 0.3);
+}
+
+.timer-expired {
+  color: #ff3333;
+}
+
+.roster-box {
+  background-color: #111;
+  padding: 15px;
+  border: 1px solid #333;
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.roster-title {
+  color: #aaa;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+.roster-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.roster-agent {
+  padding: 10px 0;
+  border-bottom: 1px dashed #222;
+  color: #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.override-btn {
+  width: 100%;
+  background-color: #ffcc00;
+  color: black;
+}
+
+.proceed-btn {
+  width: 100%;
+}
+
+.awaiting-caller-text {
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+  border: 1px dashed #333;
+}
+
+.caller-highlight {
+  color: #ff3333;
+}

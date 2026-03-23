@@ -1,0 +1,223 @@
+/* frontend/src/components/HostDashboard.css */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 350px;
+  margin: 0 auto;
+  margin-top: 30px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+
+.dashboard-title {
+  color: #aaa;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.logout-btn {
+  background-color: transparent;
+  color: #ff3333;
+  border: 1px solid #ff3333;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #111;
+  padding: 15px;
+  border: 1px solid #333;
+}
+
+.settings-input {
+  width: 50px;
+  background-color: #222;
+  color: white;
+  border: none;
+  padding: 5px;
+  text-align: center;
+}
+
+.save-params-btn {
+  padding: 10px;
+  background-color: #333;
+  color: #f0f0f0;
+  border: 1px dashed #666;
+  cursor: pointer;
+}
+
+/* Task Dictionary Styles */
+.dictionary-container {
+  padding: 15px;
+  background-color: #050505;
+  margin-top: 10px;
+  transition: border 0.3s;
+}
+
+.dictionary-default {
+  border: 1px solid #33ccff;
+}
+
+.dictionary-editing {
+  border: 2px solid #ffcc00;
+}
+
+.dictionary-title {
+  margin: 0 0 15px 0;
+  letter-spacing: 1px;
+}
+
+.title-default { color: #33ccff; }
+.title-editing { color: #ffcc00; }
+
+.task-list-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 10px;
+}
+
+.empty-tasks {
+  color: #666;
+  text-align: center;
+  font-style: italic;
+  padding: 20px 0;
+}
+
+.task-category {
+  margin-bottom: 15px;
+}
+
+.category-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+}
+
+.category-hard { color: #ff3333; }
+.category-medium { color: #ffcc00; }
+.category-easy { color: #33ccff; }
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 5px;
+}
+
+.task-item-default {
+  background-color: #111;
+  border: 1px solid #333;
+}
+
+.task-item-editing {
+  background-color: #332200;
+  border: 1px solid #ffcc00;
+}
+
+.task-name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.task-location {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn {
+  background-color: transparent;
+  color: #33ccff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.delete-btn {
+  background-color: transparent;
+  color: #ff3333;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Task Form Styles */
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dashed #333;
+  padding-top: 15px;
+}
+
+.task-input {
+  padding: 10px;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  color: white;
+}
+
+.task-textarea {
+  min-height: 60px;
+  font-family: monospace;
+}
+
+.task-row {
+  display: flex;
+  gap: 10px;
+}
+
+.task-select {
+  flex: 1;
+}
+
+.task-save-btn {
+  padding: 10px;
+  color: black;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+}
+
+.save-new { background-color: #33ccff; }
+.save-edit { background-color: #ffcc00; }
+
+.cancel-edit-btn {
+  padding: 5px;
+  background-color: transparent;
+  color: #aaa;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: -5px;
+}
+
+.generate-btn {
+  width: 100%;
+  margin-top: 20px;
+}

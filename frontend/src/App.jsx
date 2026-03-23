@@ -14,6 +14,9 @@ import VotingResults from './components/VotingResults';
 import GameOver from './components/GameOver';
 import TaskModal from './components/TaskModal';
 
+import './App.css';
+import './components/Shared.css';
+
 function App() {
   const [view, setView] = useState('home'); 
   const [roomCode, setRoomCode] = useState('');
@@ -442,8 +445,8 @@ function App() {
   };
 
   return (
-    <div style={{ backgroundColor: '#0a0a0a', color: '#f0f0f0', minHeight: '100vh', padding: '20px', fontFamily: 'monospace' }}>
-      <h1 style={{ color: '#ff3333', textAlign: 'center', letterSpacing: '2px' }}>OPERATION: RETREAT</h1>
+    <div className="app-container">
+      <h1 className="app-title">JUDAS</h1>
       
       {view === 'home' && (
         <Home 

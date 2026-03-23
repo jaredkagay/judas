@@ -1,0 +1,248 @@
+/* frontend/src/components/PlayerDashboard.css */
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulseText { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+.player-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.waiting-screen {
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.waiting-text {
+  animation: pulseText 2s infinite;
+  color: #666;
+  letter-spacing: 2px;
+}
+
+/* Role Reveal */
+.reveal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #050505;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 1.5s ease-out;
+}
+
+.reveal-label {
+  color: #aaa;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.reveal-role {
+  font-size: 50px;
+  letter-spacing: 5px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.role-imposter { color: #ff3333; text-shadow: 0 0 20px #ff3333; }
+.role-crewmate { color: #33ccff; text-shadow: 0 0 20px #33ccff; }
+
+.reveal-desc {
+  color: #888;
+  margin-top: 30px;
+  max-width: 250px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.associates-box {
+  margin-top: 30px;
+  border-top: 1px dashed #ff3333;
+  padding-top: 15px;
+  text-align: center;
+}
+
+.associates-label {
+  color: #ff3333;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.associates-list {
+  color: white;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.ack-reveal-btn {
+  margin-top: 60px;
+  background-color: transparent;
+  border: 1px solid #666;
+  color: #aaa;
+}
+
+/* Main Dashboard */
+.dashboard-main {
+  animation: fadeIn 0.5s ease-out;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.ghost-status {
+  background-color: #550000;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.alive-opacity { opacity: 1; }
+.ghost-opacity { opacity: 0.5; }
+
+.tasks-container {
+  width: 100%;
+  max-width: 350px;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.tasks-title {
+  color: #aaa;
+  margin: 0;
+}
+
+.verify-btn {
+  background: none;
+  border: 1px solid #333;
+  color: #666;
+  font-size: 10px;
+  padding: 4px 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.peek-box {
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #111;
+  border: 1px dashed #444;
+}
+
+.peek-label {
+  color: #aaa;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.peek-role {
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.peek-associates {
+  border-top: 1px solid #333;
+  padding-top: 15px;
+}
+
+.task-ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-li {
+  background-color: #111;
+  padding: 15px;
+  margin-bottom: 10px;
+  border: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.task-li-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.task-complete { text-decoration: line-through; color: #666; }
+.task-incomplete { text-decoration: none; color: #f0f0f0; }
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #666;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox-done { background-color: #666; }
+.checkbox-empty { background-color: transparent; }
+
+.check-mark {
+  color: #000;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.report-btn {
+  margin-top: 30px;
+  padding: 15px;
+  width: 250px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.report-active {
+  background-color: #220000;
+  color: #ff3333;
+  border: 1px solid #ff3333;
+  cursor: pointer;
+}
+
+.report-jammed {
+  background-color: #111;
+  color: #555;
+  border: 1px solid #333;
+  cursor: not-allowed;
+}
+
+.disconnect-btn {
+  margin-top: 50px;
+  border: 1px solid #333;
+}

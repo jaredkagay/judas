@@ -1,0 +1,53 @@
+/* frontend/src/components/Shared.css */
+
+.btn {
+  padding: 15px;
+  background-color: #ff3333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 1px;
+  width: 250px;
+}
+
+.btn:disabled {
+  background-color: #333 !important;
+  color: #666 !important;
+  cursor: not-allowed !important;
+}
+
+.input-field {
+  padding: 15px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  color: white;
+  text-align: center;
+  letter-spacing: 3px;
+}
+
+.emergency-btn {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background-color: #cc0000;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border: 10px solid #550000;
+  box-shadow: 0 0 20px #ff000055;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.cancel-btn {
+  padding: 10px;
+  background-color: transparent;
+  color: #666;
+  border: none;
+  cursor: pointer;
+}

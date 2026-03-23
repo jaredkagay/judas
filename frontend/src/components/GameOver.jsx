@@ -1,27 +1,22 @@
-import { btnStyle } from '../styles';
+import './GameOver.css';
 
 export default function GameOver({ gameOverData, leaveGame }) {
   if (!gameOverData) return null;
 
+  const isCrewWin = gameOverData.winner === 'Crewmates';
+
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2 style={{ color: '#aaa', letterSpacing: '5px' }}>MISSION TERMINATED</h2>
+    <div className="gameover-container">
+      <h2 className="gameover-header">MISSION TERMINATED</h2>
       
-      <div style={{ 
-        marginTop: '40px', padding: '40px 20px', 
-        border: gameOverData.winner === 'Crewmates' ? '2px solid #33ccff' : '2px solid #ff3333',
-        backgroundColor: '#111' 
-      }}>
-        <h1 style={{ 
-          fontSize: '50px', margin: '0 0 20px 0', textTransform: 'uppercase',
-          color: gameOverData.winner === 'Crewmates' ? '#33ccff' : '#ff3333' 
-        }}>
+      <div className={`winner-box ${isCrewWin ? 'winner-crewmates' : 'winner-imposters'}`}>
+        <h1 className={`winner-text ${isCrewWin ? 'text-crewmates' : 'text-imposters'}`}>
           {gameOverData.winner} WIN
         </h1>
-        <h3 style={{ color: '#aaa', margin: 0 }}>{gameOverData.reason}</h3>
+        <h3 className="reason-text">{gameOverData.reason}</h3>
       </div>
 
-      <button onClick={leaveGame} style={{ ...btnStyle, marginTop: '60px', backgroundColor: '#333' }}>
+      <button onClick={leaveGame} className="btn return-lobby-btn">
         DISCONNECT & RETURN TO LOBBY
       </button>
     </div>

@@ -26,3 +26,4 @@ dist-ssr
 .env
 
 *.py[cod]
+backend/among_us.db

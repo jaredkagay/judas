@@ -1,0 +1,39 @@
+/* frontend/src/components/GameOver.css */
+
+.gameover-container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.gameover-header {
+  color: #aaa;
+  letter-spacing: 5px;
+}
+
+.winner-box {
+  margin-top: 40px;
+  padding: 40px 20px;
+  background-color: #111;
+}
+
+.winner-crewmates { border: 2px solid #33ccff; }
+.winner-imposters { border: 2px solid #ff3333; }
+
+.winner-text {
+  font-size: 50px;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+}
+
+.text-crewmates { color: #33ccff; }
+.text-imposters { color: #ff3333; }
+
+.reason-text {
+  color: #aaa;
+  margin: 0;
+}
+
+.return-lobby-btn {
+  margin-top: 60px;
+  background-color: #333;
+}
