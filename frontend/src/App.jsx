@@ -66,7 +66,7 @@ function App() {
   }, []);
 
   const connectWebSocket = (code, userAlias, targetView) => {
-    ws.current = new WebSocket(`ws://localhost:8000/ws/${code.toUpperCase()}/${userAlias}`);
+    ws.current = new WebSocket(`${import.meta.env.VITE_WS_URL}/ws/${code.toUpperCase()}/${userAlias}`);
 
     ws.current.onopen = () => {
       setIsConnected(true);
@@ -122,7 +122,7 @@ function App() {
   };
 
   const fetchTasks = async () => {
-    const response = await fetch('http://localhost:8000/tasks');
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks`);
     const data = await response.json();
     setDictionaryTasks(data);
   };
@@ -130,7 +130,7 @@ function App() {
   const addTask = async () => {
     if (!newTaskName || !newTaskLocation || !newTaskDescription) return;
     
-    const response = await fetch('http://localhost:8000/tasks', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -152,13 +152,13 @@ function App() {
   };
 
   const deleteTask = async (taskId) => {
-    await fetch(`http://localhost:8000/tasks/${taskId}`, { method: 'DELETE' });
+    await fetch(`${import.meta.env.VITE_API_URL}/tasks/${taskId}`, { method: 'DELETE' });
     setDictionaryTasks(dictionaryTasks.filter(t => t.id !== taskId));
   };
 
   const handleHostGame = async () => {
     try {
-      const response = await fetch('http://localhost:8000/host', { 
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/host`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -177,7 +177,7 @@ function App() {
   };
 
   const startGame = async () => {
-    await fetch(`http://localhost:8000/start/${roomCode}`, { method: 'POST' });
+    await fetch(`${import.meta.env.VITE_API_URL}/start/${roomCode}`, { method: 'POST' });
   };
 
   const joinRoom = () => {
