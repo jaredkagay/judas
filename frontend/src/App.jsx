@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { btnStyle, inputStyle } from './styles';
 
 // Component Imports
 import Home from './components/Home';
