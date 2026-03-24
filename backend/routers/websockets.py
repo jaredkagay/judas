@@ -1,5 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import json
+import random
 
 from database import SessionLocal
 import models
@@ -11,6 +12,7 @@ async def handle_trigger_emergency(room_code: str, alias: str):
     db = SessionLocal()
     try:
         manager.meeting_acks[room_code] = set()
+        manager.active_corpses[room_code] = {}
         alive_players = db.query(models.Player).filter_by(room_code=room_code, is_alive=True).count()
         await manager.broadcast(room_code, {
             "event": "emergency_alert", 
@@ -41,7 +43,8 @@ async def handle_acknowledge_meeting(room_code: str, alias: str):
             game = db.query(models.GameSession).filter_by(room_code=room_code).first()
             await manager.broadcast(room_code, {
                 "event": "discussion_started",
-                "discussion_time": game.discussion_time_sec if game else 60
+                "discussion_time": game.discussion_time_sec if game else 60,
+                "alive_agents": list(alive_aliases)
             })
     finally:
         db.close()
@@ -149,6 +152,20 @@ async def handle_report_neutralized(room_code: str, alias: str):
         if dead_player and dead_player.is_alive:
             dead_player.is_alive = False
             db.commit()
+
+        if room_code not in manager.active_corpses:
+            manager.active_corpses[room_code] = {}
+            
+        corpse_id = str(random.randint(100, 999))
+        while corpse_id in manager.active_corpses[room_code]:
+            corpse_id = str(random.randint(100, 999))
+            
+        manager.active_corpses[room_code][corpse_id] = alias
+
+        await manager.send_personal_message({
+            "event": "corpse_id_assigned",
+            "corpse_id": corpse_id
+        }, room_code, alias)
         
         alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
         alive_crewmates = db.query(models.Player).filter_by(room_code=room_code, role="Crewmate", is_alive=True).count()
@@ -167,6 +184,28 @@ async def handle_report_neutralized(room_code: str, alias: str):
     finally:
         db.close()
 
+async def handle_report_body(room_code: str, alias: str, corpse_id: str):
+    db = SessionLocal()
+    try:
+        if room_code in manager.active_corpses and corpse_id in manager.active_corpses[room_code]:
+            dead_alias = manager.active_corpses[room_code][corpse_id]
+            
+            manager.active_corpses[room_code] = {}
+            manager.meeting_acks[room_code] = set()
+
+            alive_players = db.query(models.Player).filter_by(room_code=room_code, is_alive=True).count()
+
+            await manager.broadcast(room_code, {
+                "event": "body_reported_alert",
+                "caller": alias,
+                "target": dead_alias,
+                "total_alive": alive_players
+            })
+        else:
+            await manager.send_personal_message({"event": "invalid_corpse_id"}, room_code, alias)
+    finally:
+        db.close()
+
 @router.websocket("/ws/{room_code}/{alias}")
 async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
     if room_code in manager.active_rooms and alias in manager.active_rooms[room_code]:
@@ -178,14 +217,15 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
     try:
         db = SessionLocal()
         try:
-            if alias != "ORGANIZER":
+            if alias != "ORGANIZER" and not alias.startswith("AUX_"):
                 player = db.query(models.Player).filter_by(room_code=room_code, alias=alias).first()
                 if not player:
                     new_player = models.Player(room_code=room_code, alias=alias)
                     db.add(new_player)
                     db.commit()
 
-            active_players = [p for p in manager.active_rooms[room_code].keys() if p != "ORGANIZER"]
+            active_players = [p for p in manager.active_rooms[room_code].keys() 
+                              if p != "ORGANIZER" and not p.startswith("AUX_")]
         finally:
             db.close()
 
@@ -213,11 +253,15 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
                 await handle_complete_task(room_code, task_id)
             elif action == "report_neutralized":
                 await handle_report_neutralized(room_code, alias)
+            elif action == "report_body":
+                corpse_id = payload.get("corpse_id")
+                await handle_report_body(room_code, alias, corpse_id)
 
     except WebSocketDisconnect:
         manager.disconnect(room_code, alias)
         if room_code in manager.active_rooms:
-            active_players = [p for p in manager.active_rooms[room_code].keys() if p != "ORGANIZER"]
+            active_players = [p for p in manager.active_rooms[room_code].keys() 
+                              if p != "ORGANIZER" and not p.startswith("AUX_")]
             await manager.broadcast(room_code, {
                 "event": "roster_update",
                 "all_players": active_players

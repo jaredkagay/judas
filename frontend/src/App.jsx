@@ -12,6 +12,8 @@ import VotingPhase from './components/VotingPhase';
 import VotingResults from './components/VotingResults';
 import GameOver from './components/GameOver';
 import TaskModal from './components/TaskModal';
+import AuxiliaryJoin from './components/AuxiliaryJoin';
+import AuxiliaryDashboard from './components/AuxiliaryDashboard';
 
 import './App.css';
 import './components/Shared.css';
@@ -66,6 +68,12 @@ function App() {
   const [meetingEndTime, setMeetingEndTime] = useState(0); 
   const [displayMeetingTime, setDisplayMeetingTime] = useState(0);
 
+  const [corpseId, setCorpseId] = useState(null);
+  const [reportedBody, setReportedBody] = useState('');
+
+  const [emergencyCooldownEndTime, setEmergencyCooldownEndTime] = useState(0); 
+  const [displayEmergencyCooldown, setDisplayEmergencyCooldown] = useState(0);
+
   const ws = useRef(null);
 
   useEffect(() => {
@@ -93,7 +101,8 @@ function App() {
     if (savedRoom && savedAlias) {
       setRoomCode(savedRoom);
       setAlias(savedAlias);
-      connectWebSocket(savedRoom, savedAlias, 'player'); 
+      const targetView = savedAlias.startsWith('AUX_') ? 'aux_dashboard' : 'player';
+      connectWebSocket(savedRoom, savedAlias, targetView); 
     }
     
     const savedHostId = localStorage.getItem('hostId');
@@ -122,10 +131,24 @@ function App() {
   }, [meetingEndTime]);
 
   useEffect(() => {
-    if (view === 'voting' && displayMeetingTime === 0 && !hasVoted && isAlive && alias !== 'ORGANIZER') {
+    if (view === 'voting' && displayMeetingTime === 0 && !hasVoted && isAlive && alias !== 'ORGANIZER' && !alias.startsWith('AUX_')) {
       castVote('SKIP');
     }
   }, [displayMeetingTime, view, hasVoted, isAlive, alias]);
+
+  useEffect(() => {
+    if (emergencyCooldownEndTime === 0) {
+      setDisplayEmergencyCooldown(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((emergencyCooldownEndTime - now) / 1000));
+      setDisplayEmergencyCooldown(remaining);
+      if (remaining === 0) setEmergencyCooldownEndTime(0);
+    }, 200);
+    return () => clearInterval(interval);
+  }, [emergencyCooldownEndTime]);
 
   const connectWebSocket = (code, userAlias, targetView) => {
     ws.current = new WebSocket(`${import.meta.env.VITE_WS_URL}/ws/${code.toUpperCase()}/${userAlias}`);
@@ -170,13 +193,19 @@ function App() {
         const alarm = document.getElementById("emergency-alarm");
         if (alarm) alarm.pause();
         
-        setMeetingEndTime(Date.now() + (data.discussion_time * 1000));
-        setDisplayMeetingTime(data.discussion_time);
+        setEligibleTargets(data.alive_agents || []);
+        
+        // ADDED FALLBACKS (|| 60) to prevent the timer from crashing to NaN/0s
+        const dTime = data.discussion_time || 60;
+        setMeetingEndTime(Date.now() + (dTime * 1000));
+        setDisplayMeetingTime(dTime);
         setView('discussion');
       }
       else if (data.event === 'voting_started') {
-        setMeetingEndTime(Date.now() + (data.voting_time * 1000));
-        setDisplayMeetingTime(data.voting_time); 
+        // ADDED FALLBACKS (|| 30)
+        const vTime = data.voting_time || 30;
+        setMeetingEndTime(Date.now() + (vTime * 1000));
+        setDisplayMeetingTime(vTime); 
         setEligibleTargets(data.eligible_targets || []);
         setView('voting');
       }
@@ -187,13 +216,30 @@ function App() {
         if (data.game_over) {
           setGameOverData({ winner: data.winner, reason: data.reason });
         }
-        setView('voting_results');
+
+        setCooldownEndTime(Date.now() + (30 * 1000));
+        setEmergencyCooldownEndTime(Date.now() + (30 * 1000));
+
+        if (userAlias.startsWith('AUX_')) {
+          setHasVoted(false);
+          setVoteOutcome({ eliminated: '', tally: {} });
+          
+          if (data.game_over) {
+            setView('game_over');
+          } else {
+            setView('aux_dashboard');
+          }
+        } else {
+          setView('voting_results');
+        }
       }
       else if (data.event === 'game_started') {
         if (userAlias === 'ORGANIZER') setView('organizer_dashboard');
+        else if (userAlias.startsWith('AUX_')) setView('aux_dashboard'); 
         
         if (data.cooldown) {
           setCooldownEndTime(Date.now() + (data.cooldown * 1000));
+          setEmergencyCooldownEndTime(Date.now() + (data.cooldown * 1000));
         }
       }
       else if (data.event === 'task_progress_update') {
@@ -205,6 +251,29 @@ function App() {
       }
       else if (data.event === 'cooldown_reset') {
         setCooldownEndTime(Date.now() + (data.cooldown * 1000));
+      }
+      else if (data.event === 'corpse_id_assigned') {
+        setCorpseId(data.corpse_id);
+      }
+      else if (data.event === 'invalid_corpse_id') {
+        alert("Invalid Corpse ID. Please check the code and try again.");
+      }
+      else if (data.event === 'body_reported_alert') {
+        setMeetingCaller(data.caller);
+        setReportedBody(data.target);
+        setCorpseId(null);
+        setHasVoted(false);
+        setHasAcknowledged(false);
+        setMeetingAcks(0);
+        setMeetingTotal(data.total_alive); 
+        setView('emergency_alert');
+        
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3');
+          audio.loop = true;
+          audio.id = "emergency-alarm";
+          audio.play();
+        } catch (e) { console.log("Audio autoplay blocked by browser"); }
       }
     };
     
@@ -375,11 +444,12 @@ function App() {
     await fetch(`${import.meta.env.VITE_API_URL}/start/${roomCode}`, { method: 'POST' });
   };
 
-  const joinRoom = () => {
-    if (!roomCode || !alias) return;
+  const joinRoom = (forcedAlias = alias, targetView = 'player') => {
+    if (!roomCode || !forcedAlias) return;
+    setAlias(forcedAlias);
     localStorage.setItem('roomCode', roomCode.toUpperCase());
-    localStorage.setItem('alias', alias);
-    connectWebSocket(roomCode.toUpperCase(), alias, 'player');
+    localStorage.setItem('alias', forcedAlias);
+    connectWebSocket(roomCode.toUpperCase(), forcedAlias, targetView);
   };
 
   const callEmergency = () => {
@@ -427,6 +497,12 @@ function App() {
     }
   };
 
+  const reportBody = (code) => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN && isAlive) {
+      ws.current.send(JSON.stringify({ action: 'report_body', corpse_id: code }));
+    }
+  };
+
   const resumeMission = () => {
     if (gameOverData) {
       setView('game_over');
@@ -434,10 +510,12 @@ function App() {
     }
     setHasVoted(false);
     setVoteOutcome({ eliminated: '', tally: {} });
-    setView(alias === 'ORGANIZER' ? 'organizer_dashboard' : 'player');
-    setCooldownEndTime(Date.now() + (30 * 1000));
+    setReportedBody('');
+    
+    if (alias === 'ORGANIZER') setView('organizer_dashboard');
+    else if (alias.startsWith('AUX_')) setView('aux_dashboard');
+    else setView('player');
   };
-
   const leaveGame = () => {
     localStorage.clear();
     window.location.reload();
@@ -453,6 +531,23 @@ function App() {
           alias={alias} setAlias={setAlias} 
           joinRoom={joinRoom} setView={setView} hostId={hostId} 
         />
+      )}
+
+      {view === 'aux_setup' && (
+        <AuxiliaryJoin 
+          roomCode={roomCode} setRoomCode={setRoomCode} 
+          joinRoom={joinRoom} setView={setView} 
+        />
+      )}
+
+      {view === 'aux_lobby' && (
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+          <h3 style={{ color: '#aaa', letterSpacing: '2px' }}>SYSTEM CONNECTED. AWAITING MISSION START...</h3>
+        </div>
+      )}
+
+      {view === 'aux_dashboard' && (
+        <AuxiliaryDashboard callEmergency={callEmergency} displayCooldown={displayEmergencyCooldown} />
       )}
 
       {view === 'host_auth' && (
@@ -534,6 +629,7 @@ function App() {
           tasks={tasks} setSelectedTask={setSelectedTask} markTaskComplete={markTaskComplete}
           callEmergency={callEmergency} displayCooldown={displayCooldown} 
           reportNeutralized={reportNeutralized} leaveGame={leaveGame}
+          reportBody={reportBody} corpseId={corpseId}
         />
       )}
 
@@ -542,12 +638,14 @@ function App() {
           meetingCaller={meetingCaller} alias={alias} isAlive={isAlive}
           hasAcknowledged={hasAcknowledged} acknowledgeMeeting={acknowledgeMeeting}
           meetingAcks={meetingAcks} meetingTotal={meetingTotal}
+          reportedBody={reportedBody}
         />
       )}
 
       {view === 'discussion' && (
         <DiscussionPhase 
-          displayMeetingTime={displayMeetingTime} playerList={playerList}
+          displayMeetingTime={displayMeetingTime} 
+          alivePlayers={eligibleTargets}
           alias={alias} meetingCaller={meetingCaller} startVoting={startVoting}
         />
       )}
@@ -567,7 +665,7 @@ function App() {
       )}
 
       {view === 'game_over' && gameOverData && (
-        <GameOver gameOverData={gameOverData} leaveGame={leaveGame} />
+        <GameOver gameOverData={gameOverData} leaveGame={leaveGame} alias={alias} />
       )}
 
       <TaskModal selectedTask={selectedTask} setSelectedTask={setSelectedTask} />

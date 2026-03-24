@@ -1,11 +1,40 @@
+import { useState } from 'react';
 import './PlayerDashboard.css';
 
 export default function PlayerDashboard({
   role, showRoleReveal, setShowRoleReveal, teammates,
   isAlive, peekRole, setPeekRole, tasks, setSelectedTask,
-  markTaskComplete, callEmergency, displayCooldown, 
-  reportNeutralized, leaveGame
+  markTaskComplete, displayCooldown, reportNeutralized, leaveGame,
+  reportBody, corpseId
 }) {
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [corpseInput, setCorpseInput] = useState("");
+
+  const handleReportSubmit = () => {
+    if (corpseInput.length === 3) {
+      reportBody(corpseInput);
+      setShowReportModal(false);
+      setCorpseInput("");
+    } else {
+      alert("Corpse ID must be exactly 3 digits.");
+    }
+  };
+
+  // ONLY hijack the screen if they are dead AND their body hasn't been found yet
+  if (!isAlive && role && corpseId) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px' }}>
+        <h1 style={{ color: '#ff3333', fontSize: '40px', letterSpacing: '2px' }}>YOU ARE DECEASED</h1>
+        <p style={{ color: '#aaa', marginTop: '20px' }}>WAIT IN PLACE. YOUR CORPSE ID IS:</p>
+        <div style={{ fontSize: '90px', fontWeight: 'bold', color: 'white', letterSpacing: '10px', margin: '30px 0' }}>
+          {corpseId}
+        </div>
+        <p style={{ color: '#777' }}>Do not speak. Another agent must enter this code to report you.</p>
+        {/* Abort Mission button removed so they have to stay and wait! */}
+      </div>
+    );
+  }
+
   return (
     <div className="player-wrapper">
       {!role ? (
@@ -39,12 +68,14 @@ export default function PlayerDashboard({
       ) : (
         <div className="dashboard-main">
           
+          {/* RESTORED: Ghost Status Banner */}
           {!isAlive && (
             <div className="ghost-status">
               STATUS: NEUTRALIZED (GHOST MODE)
             </div>
           )}
 
+          {/* RESTORED: Ghost Opacity class application */}
           <div className={`dashboard-content ${isAlive ? 'alive-opacity' : 'ghost-opacity'}`}>
             <div className="tasks-container">
               <div className="tasks-header">
@@ -97,10 +128,15 @@ export default function PlayerDashboard({
             </div>
           </div>
 
+          {/* Buttons are only visible to living players */}
           {isAlive && (
             <>
-              <button onClick={callEmergency} className="emergency-btn">
-                EMERGENCY<br/>MEETING
+              <button 
+                onClick={() => setShowReportModal(true)} 
+                className="btn" 
+                style={{ backgroundColor: '#ff3333', marginTop: '20px', width: '100%', padding: '15px', fontSize: '18px', fontWeight: 'bold' }}
+              >
+                REPORT BODY
               </button>
 
               <button 
@@ -113,12 +149,34 @@ export default function PlayerDashboard({
                   }
                 }}
                 className={`report-btn ${displayCooldown > 0 ? 'report-jammed' : 'report-active'}`}
+                style={{ marginTop: '15px' }}
               >
                 {displayCooldown > 0 ? `COMMS JAMMED (${displayCooldown}s)` : 'I WAS NEUTRALIZED'}
               </button>
+
+              {showReportModal && (
+                <div className="modal-overlay">
+                  <div className="modal-content">
+                    <h2 style={{ color: '#ff3333', marginBottom: '20px' }}>ENTER CORPSE ID</h2>
+                    <input 
+                      type="number"
+                      placeholder="000"
+                      maxLength="3"
+                      value={corpseInput}
+                      onChange={(e) => setCorpseInput(e.target.value.slice(0, 3))}
+                      style={{ width: '100%', padding: '15px', fontSize: '40px', textAlign: 'center', letterSpacing: '15px', backgroundColor: '#111', color: 'white', border: '1px solid #444', marginBottom: '20px' }}
+                    />
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={handleReportSubmit} className="btn" style={{ flex: 1, backgroundColor: '#ff3333' }}>REPORT</button>
+                      <button onClick={() => setShowReportModal(false)} className="btn" style={{ flex: 1, backgroundColor: '#444' }}>CANCEL</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
-          <button onClick={leaveGame} className="cancel-btn disconnect-btn">
+
+          <button onClick={leaveGame} className="cancel-btn disconnect-btn" style={{ marginTop: '15px' }}>
             DISCONNECT
           </button>
         </div>

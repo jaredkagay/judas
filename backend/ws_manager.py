@@ -6,6 +6,7 @@ class ConnectionManager:
         self.active_rooms = {}
         self.active_votes = {}
         self.meeting_acks = {}
+        self.active_corpses = {}
 
     async def connect(self, websocket: WebSocket, room_code: str, alias: str):
         await websocket.accept()
