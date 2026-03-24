@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import Home from './components/Home';
 import HostAuth from './components/HostAuth';
 import HostDashboard from './components/HostDashboard';
-import OrganizerLobby from './components/OrganizerLobby';
 import PlayerDashboard from './components/PlayerDashboard';
 import EmergencyAlert from './components/EmergencyAlert';
 import DiscussionPhase from './components/DiscussionPhase';
@@ -210,27 +209,34 @@ function App() {
         setView('voting');
       }
       else if (data.event === 'vote_results') {
-        setVoteOutcome({ eliminated: data.eliminated, tally: data.tally });
+        setVoteOutcome({ 
+          eliminated: data.eliminated, 
+          tally: data.tally,
+          wasImposter: data.was_imposter,
+          impostersRemaining: data.imposters_remaining 
+        });
+        
         if (data.eliminated === userAlias) setIsAlive(false);
         
-        if (data.game_over) {
-          setGameOverData({ winner: data.winner, reason: data.reason });
-        }
-
         setCooldownEndTime(Date.now() + (30 * 1000));
         setEmergencyCooldownEndTime(Date.now() + (30 * 1000));
 
-        if (userAlias.startsWith('AUX_')) {
-          setHasVoted(false);
-          setVoteOutcome({ eliminated: '', tally: {} });
+        if (data.game_over) {
+          setGameOverData({ winner: data.winner, reason: data.reason });
+          setView('game_over');
           
-          if (data.game_over) {
-            setView('game_over');
-          } else {
-            setView('aux_dashboard');
+          if (userAlias.startsWith('AUX_')) {
+            setHasVoted(false);
+            setVoteOutcome({ eliminated: '', tally: {} });
           }
         } else {
-          setView('voting_results');
+          if (userAlias.startsWith('AUX_')) {
+            setHasVoted(false);
+            setVoteOutcome({ eliminated: '', tally: {} });
+            setView('aux_dashboard');
+          } else {
+            setView('voting_results');
+          }
         }
       }
       else if (data.event === 'game_started') {
@@ -274,6 +280,28 @@ function App() {
           audio.id = "emergency-alarm";
           audio.play();
         } catch (e) { console.log("Audio autoplay blocked by browser"); }
+      }
+      else if (data.event === 'return_to_lobby') {
+        setRole(null);
+        setTasks([]);
+        setGameOverData(null);
+        setVoteOutcome({ eliminated: '', tally: {} });
+        setHasVoted(false);
+        setIsAlive(true);
+        setReportedBody('');
+        setMeetingCaller('');
+        setCorpseId(null);
+        
+        if (userAlias === 'ORGANIZER') {
+          setView('host_dashboard');
+        } else if (userAlias.startsWith('AUX_')) {
+          setView('aux_lobby');
+        } else {
+          setView('player'); 
+        }
+      }
+      else if (data.event === 'game_ended') {
+        leaveGame();
       }
     };
     
@@ -434,14 +462,24 @@ function App() {
       const newCode = data.room_code;
       setRoomCode(newCode);
       setAlias('ORGANIZER');
-      connectWebSocket(newCode, 'ORGANIZER', 'organizer');
+      connectWebSocket(newCode, 'ORGANIZER', 'host_dashboard');
     } catch (error) {
       console.error("Failed to host game:", error);
     }
   };
 
   const startGame = async () => {
-    await fetch(`${import.meta.env.VITE_API_URL}/start/${roomCode}`, { method: 'POST' });
+    await fetch(`${import.meta.env.VITE_API_URL}/start/${roomCode}`, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        host_id: hostId,
+        imposter_count: configImposters, 
+        cooldown_sec: configCooldown,
+        discussion_time_sec: configDiscussionTime,
+        voting_time_sec: configVotingTime
+      })
+    });
   };
 
   const joinRoom = (forcedAlias = alias, targetView = 'player') => {
@@ -516,9 +554,22 @@ function App() {
     else if (alias.startsWith('AUX_')) setView('aux_dashboard');
     else setView('player');
   };
+
   const leaveGame = () => {
     localStorage.clear();
     window.location.reload();
+  };
+
+  const playAgain = () => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ action: 'play_again' }));
+    }
+  };
+
+  const endGameHost = () => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ action: 'end_game' }));
+    }
   };
 
   return (
@@ -572,6 +623,7 @@ function App() {
           newTaskDifficulty={newTaskDifficulty} setNewTaskDifficulty={setNewTaskDifficulty}
           saveTask={saveTask} cancelEdit={cancelEdit}
           handleHostGame={handleHostGame} setView={setView}
+          roomCode={roomCode} playerList={playerList} startGame={startGame}
         />
       )}
 
@@ -665,7 +717,7 @@ function App() {
       )}
 
       {view === 'game_over' && gameOverData && (
-        <GameOver gameOverData={gameOverData} leaveGame={leaveGame} alias={alias} />
+        <GameOver gameOverData={gameOverData} leaveGame={leaveGame} alias={alias} playAgain={playAgain} endGameHost={endGameHost} />
       )}
 
       <TaskModal selectedTask={selectedTask} setSelectedTask={setSelectedTask} />

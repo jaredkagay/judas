@@ -1,10 +1,9 @@
-/* frontend/src/components/HostDashboard.css */
-
 .dashboard-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 350px;
+  width: 90vw;
+  max-width: 1200px;
   margin: 0 auto;
   margin-top: 30px;
 }
@@ -33,6 +32,78 @@
   font-weight: bold;
 }
 
+.host-top-section {
+  background-color: #0a0a0a;
+  border: 1px solid #33ccff;
+  padding: 20px;
+  text-align: center;
+}
+
+.lobby-info {
+  display: flex;
+  gap: 20px;
+}
+
+.lobby-room-code-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lobby-room-code {
+  font-size: 60px;
+  color: #ff3333;
+  letter-spacing: 10px;
+  margin: 10px 0 20px 0;
+}
+
+.roster-container {
+  flex: 2;
+  border-left: 1px solid #333;
+  padding-left: 20px;
+  text-align: left;
+}
+
+.roster-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.player-chip {
+  background-color: #1a1a1a;
+  padding: 10px 20px;
+  border: 1px solid #444;
+}
+
+.host-bottom-section {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.settings-panel {
+  flex: 1;
+  background-color: #050505;
+  padding: 15px;
+  border: 1px solid #333;
+}
+
+.settings-panel h3 {
+  margin-top: 0;
+  color: #33ccff;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+
+.tasks-panel {
+  flex: 2;
+}
+
+/* Settings rows */
 .settings-row {
   display: flex;
   justify-content: space-between;
@@ -40,6 +111,7 @@
   background-color: #111;
   padding: 15px;
   border: 1px solid #333;
+  margin-bottom: 10px;
 }
 
 .settings-input {
@@ -53,17 +125,18 @@
 
 .save-params-btn {
   padding: 10px;
+  width: 100%;
   background-color: #333;
   color: #f0f0f0;
   border: 1px dashed #666;
   cursor: pointer;
+  margin-top: 10px;
 }
 
-/* Task Dictionary Styles */
+/* Dictionary Container */
 .dictionary-container {
   padding: 15px;
   background-color: #050505;
-  margin-top: 10px;
   transition: border 0.3s;
 }
 
@@ -84,7 +157,7 @@
 .title-editing { color: #ffcc00; }
 
 .task-list-scroll {
-  max-height: 300px;
+  max-height: 250px;
   overflow-y: auto;
   margin-bottom: 20px;
   padding-right: 10px;
@@ -165,7 +238,6 @@
   font-size: 14px;
 }
 
-/* Task Form Styles */
 .task-form {
   display: flex;
   flex-direction: column;
@@ -218,6 +290,5 @@
 }
 
 .generate-btn {
-  width: 100%;
-  margin-top: 20px;
+  margin: 0 auto;
 }

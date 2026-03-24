@@ -60,3 +60,40 @@
 
 .resume-active { background-color: #33ccff; color: black; }
 .resume-gameover { background-color: #cc00cc; color: white; }
+
+/* --- New Suspense Reveal Styles --- */
+
+.reveal-container {
+  margin: 30px 0 40px 0;
+  text-align: center;
+}
+
+.reveal-text {
+  color: white;
+  font-size: 26px;
+  letter-spacing: 2px;
+  opacity: 0;
+  animation: slowReveal 3s ease-in forwards;
+  margin-bottom: 5px;
+}
+
+.reveal-subtext {
+  color: #ff3333;
+  font-size: 18px;
+  letter-spacing: 1px;
+  opacity: 0;
+  /* Fades in slowly after a 3.5 second delay */
+  animation: slowReveal 3s ease-in forwards;
+  animation-delay: 1.5s;
+}
+
+@keyframes slowReveal {
+  0% { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}

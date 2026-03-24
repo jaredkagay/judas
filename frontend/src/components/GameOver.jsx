@@ -1,16 +1,12 @@
 import './GameOver.css';
 
-export default function GameOver({ gameOverData, leaveGame, alias }) {
-  // 1. Safety check for the iPad
+export default function GameOver({ gameOverData, alias, playAgain, endGameHost }) {
   const isAux = alias?.startsWith('AUX_');
 
-  // 2. Safety check for missing data
   if (!gameOverData) return null;
 
-  // 3. THIS WAS MISSING! Define isCrewWin for both views to use
   const isCrewWin = gameOverData.winner === 'Crewmates';
 
-  // --- IPAD / TERMINAL VIEW ---
   if (isAux) {
     return (
       <div style={{ textAlign: 'center', marginTop: '15vh' }}>
@@ -29,7 +25,6 @@ export default function GameOver({ gameOverData, leaveGame, alias }) {
     );
   }
 
-  // --- STANDARD PLAYER VIEW ---
   return (
     <div className="gameover-container">
       <h2 className="gameover-header">MISSION TERMINATED</h2>
@@ -41,9 +36,16 @@ export default function GameOver({ gameOverData, leaveGame, alias }) {
         <h3 className="reason-text">{gameOverData.reason}</h3>
       </div>
 
-      <button onClick={leaveGame} className="btn return-lobby-btn">
-        DISCONNECT & RETURN TO LOBBY
-      </button>
+      {alias === 'ORGANIZER' && (
+        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '40px' }}>
+          <button onClick={playAgain} className="btn" style={{ backgroundColor: '#00cc00' }}>
+            START NEW GAME
+          </button>
+          <button onClick={endGameHost} className="btn return-lobby-btn" style={{ margin: 0 }}>
+            END GAME
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -38,8 +38,9 @@ export default function PlayerDashboard({
   return (
     <div className="player-wrapper">
       {!role ? (
-        <div className="waiting-screen">
-          <h3 className="waiting-text">AWAITING MISSION BRIEFING...</h3>
+        <div className="waiting-screen" style={{ flexDirection: 'column' }}>
+          <h3 className="waiting-text" style={{ marginBottom: '30px' }}>AWAITING MISSION BRIEFING...</h3>
+          <button onClick={leaveGame} className="btn" style={{ backgroundColor: '#444' }}>DISCONNECT</button>
         </div>
       ) : showRoleReveal ? (
         <div className="reveal-overlay">
@@ -175,10 +176,6 @@ export default function PlayerDashboard({
               )}
             </>
           )}
-
-          <button onClick={leaveGame} className="cancel-btn disconnect-btn" style={{ marginTop: '15px' }}>
-            DISCONNECT
-          </button>
         </div>
       )}
     </div>

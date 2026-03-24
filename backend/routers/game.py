@@ -48,8 +48,14 @@ def create_game(config: schemas.HostConfig, db: Session = Depends(get_db)):
     return {"room_code": new_code, "status": "Lobby Created"}
 
 @router.post("/start/{room_code}")
-async def start_game(room_code: str, db: Session = Depends(get_db)):
+async def start_game(room_code: str, config: schemas.HostConfig, db: Session = Depends(get_db)):
     game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+    
+    game.imposter_count = config.imposter_count
+    game.cooldown_sec = config.cooldown_sec
+    game.discussion_time_sec = config.discussion_time_sec
+    game.voting_time_sec = config.voting_time_sec
+    
     game.current_phase = "Playing"
     
     players = db.query(models.Player).filter_by(room_code=room_code).all()

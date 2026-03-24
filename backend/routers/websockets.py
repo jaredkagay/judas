@@ -86,11 +86,13 @@ async def handle_submit_vote(room_code: str, alias: str, target: str):
             leaders = [agent for agent, votes in tally.items() if votes == max_votes]
             
             eliminated_agent = "NO ONE"
+            was_imposter = None
             if len(leaders) == 1 and leaders[0] != "SKIP":
                 eliminated_agent = leaders[0]
                 dead_player = db.query(models.Player).filter_by(room_code=room_code, alias=eliminated_agent).first()
                 if dead_player:
                     dead_player.is_alive = False
+                    was_imposter = (dead_player.role == "Imposter")
                     db.commit()
             
             alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
@@ -108,6 +110,8 @@ async def handle_submit_vote(room_code: str, alias: str, target: str):
             await manager.broadcast(room_code, {
                 "event": "vote_results",
                 "eliminated": eliminated_agent,
+                "was_imposter": was_imposter,
+                "imposters_remaining": alive_imposters,
                 "tally": tally,
                 "game_over": winner is not None,
                 "winner": winner,
@@ -206,6 +210,32 @@ async def handle_report_body(room_code: str, alias: str, corpse_id: str):
     finally:
         db.close()
 
+async def handle_play_again(room_code: str):
+    db = SessionLocal()
+    try:
+        game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+        if game:
+            game.current_phase = "Lobby"
+            
+        players = db.query(models.Player).filter_by(room_code=room_code).all()
+        for p in players:
+            p.role = None
+            p.is_alive = True
+            
+        db.query(models.PlayerTask).filter_by(room_code=room_code).delete()
+        db.commit()
+        
+        await manager.broadcast(room_code, {
+            "event": "return_to_lobby"
+        })
+    finally:
+        db.close()
+
+async def handle_end_game(room_code: str):
+    await manager.broadcast(room_code, {
+        "event": "game_ended"
+    })
+
 @router.websocket("/ws/{room_code}/{alias}")
 async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
     if room_code in manager.active_rooms and alias in manager.active_rooms[room_code]:
@@ -256,6 +286,12 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
             elif action == "report_body":
                 corpse_id = payload.get("corpse_id")
                 await handle_report_body(room_code, alias, corpse_id)
+            elif action == "play_again":
+                if alias == "ORGANIZER":
+                    await handle_play_again(room_code)
+            elif action == "end_game":
+                if alias == "ORGANIZER":
+                    await handle_end_game(room_code)
 
     except WebSocketDisconnect:
         manager.disconnect(room_code, alias)
