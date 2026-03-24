@@ -18,38 +18,36 @@ export default function EmergencyAlert({ meetingCaller, alias, isAlive, hasAckno
          <h3 className="alert-caller">Initiated by: {displayCaller}</h3>
       )}
 
-      {/* iPad / Auxiliary View */}
       {isAux ? (
         <>
           <p className="alert-warning" style={{ color: '#aaa', marginTop: '50px' }}>
-            AWAITING CREW ARRIVAL
+            AWAITING PHYSICAL CREW ARRIVAL
           </p>
           <h1 style={{ fontSize: '80px', color: '#33ccff', margin: '20px 0' }}>
             {meetingAcks} / {meetingTotal}
           </h1>
         </>
       ) : (
-        /* Standard Player View */
         <>
           <p className="alert-warning">
-            DROP EVERYTHING. HEAD TO THE MEETING ROOM IMMEDIATELY.
+            PROCEED TO THE MEETING ROOM AND CHECK IN ON YOUR DEVICE.
           </p>
           
           {alias === 'ORGANIZER' ? (
-             <div className="ack-box">AWAITING AGENT ACKNOWLEDGMENTS...</div>
+             <div className="ack-box">AWAITING AGENT CHECK-INS...</div>
           ) : isAlive ? (
             !hasAcknowledged ? (
               <button onClick={acknowledgeMeeting} className="ack-btn">
-                I'M ON MY WAY
+                CHECK IN
               </button>
             ) : (
-              <div className="ack-box">AWAITING OTHER AGENTS...</div>
+              <div className="ack-box">CHECKED IN. AWAITING OTHER AGENTS...</div>
             )
           ) : (
              <div className="ack-box ack-box-ghost">YOU ARE A GHOST. GATHER QUIETLY.</div>
           )}
           
-          <h2 className="ack-count">{meetingAcks} / {meetingTotal} EN ROUTE</h2>
+          <h2 className="ack-count">{meetingAcks} / {meetingTotal} CHECKED IN</h2>
         </>
       )}
     </div>
