@@ -5,7 +5,7 @@ export default function PlayerDashboard({
   role, showRoleReveal, setShowRoleReveal, teammates,
   isAlive, peekRole, setPeekRole, tasks, setSelectedTask,
   markTaskComplete, displayCooldown, reportNeutralized, leaveGame,
-  reportBody, corpseId
+  reportBody, corpseId, alias, roomCode, taskProgress
 }) {
   const [showReportModal, setShowReportModal] = useState(false);
   const [corpseInput, setCorpseInput] = useState("");
@@ -45,13 +45,15 @@ export default function PlayerDashboard({
       ) : showRoleReveal ? (
         <div className="reveal-overlay">
           <h3 className="reveal-label">YOUR CLEARANCE:</h3>
-          <h1 className={`reveal-role ${role === 'Imposter' ? 'role-imposter' : 'role-crewmate'}`}>
+          <h1 className={`reveal-role ${role === 'Imposter' ? 'role-imposter' : role === 'Spectator' ? 'role-spectator' : 'role-crewmate'}`} style={{ color: role === 'Spectator' ? '#aaaaaa' : undefined }}>
             {role}
           </h1>
           
           <p className="reveal-desc">
             {role === 'Imposter' 
               ? 'Eliminate the crew. Fake your tasks. Do not get caught.' 
+              : role === 'Spectator'
+              ? 'You have joined an ongoing mission. Observe quietly.'
               : 'Complete your directives. Find the Imposter. Stay alive.'}
           </p>
 
@@ -69,12 +71,43 @@ export default function PlayerDashboard({
       ) : (
         <div className="dashboard-main">
           
-          {/* RESTORED: Ghost Status Banner */}
           {!isAlive && (
             <div className="ghost-status">
               STATUS: NEUTRALIZED (GHOST MODE)
             </div>
           )}
+
+          {/* NEW: Player HUD / Info Banner */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            backgroundColor: '#1a1a1a', 
+            padding: '10px 15px', 
+            border: '1px solid #444',
+            marginBottom: '15px',
+            fontSize: '14px',
+            color: '#ccc'
+          }}>
+            <div><strong>AGENT:</strong> <span style={{color: 'white'}}>{alias}</span></div>
+            <div><strong>UPLINK:</strong> <span style={{color: '#33ccff'}}>{roomCode}</span></div>
+          </div>
+
+          {/* NEW: Global Task Progress Bar */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '12px', color: '#aaa' }}>
+              <span>MISSION PROGRESS</span>
+              <span>{taskProgress}%</span>
+            </div>
+            <div style={{ width: '100%', height: '10px', backgroundColor: '#222', border: '1px solid #444', borderRadius: '5px', overflow: 'hidden' }}>
+              <div style={{ 
+                width: `${taskProgress}%`, 
+                height: '100%', 
+                backgroundColor: taskProgress === 100 ? '#00ff00' : '#33ccff', 
+                transition: 'width 0.5s ease-out, background-color 0.5s ease' 
+              }}></div>
+            </div>
+          </div>
 
           {/* RESTORED: Ghost Opacity class application */}
           <div className={`dashboard-content ${isAlive ? 'alive-opacity' : 'ghost-opacity'}`}>
@@ -94,7 +127,8 @@ export default function PlayerDashboard({
               {peekRole ? (
                 <div className="peek-box">
                   <div className="peek-label">YOU ARE</div>
-                  <div className={`peek-role ${role === 'Imposter' ? 'role-imposter' : 'role-crewmate'}`} style={{ marginBottom: teammates.length > 0 ? '20px' : '0' }}>
+                  <div className={`peek-role ${role === 'Imposter' ? 'role-imposter' : 'role-crewmate'}`} 
+                       style={{ marginBottom: teammates.length > 0 ? '20px' : '0', color: role === 'Spectator' ? '#aaaaaa' : undefined }}>
                     {role}
                   </div>
                   {role === 'Imposter' && teammates.length > 0 && (

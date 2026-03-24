@@ -167,6 +167,9 @@ function App() {
         setRole(data.role); 
         if (data.tasks) setTasks(data.tasks);
         if (data.teammates) setTeammates(data.teammates);
+        
+        if (data.is_alive !== undefined) setIsAlive(data.is_alive); 
+        
         setShowRoleReveal(true);
       }
       else if (data.event === 'emergency_alert') {
@@ -178,10 +181,11 @@ function App() {
         setView('emergency_alert');
         
         try {
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3');
-          audio.loop = true;
-          audio.id = "emergency-alarm";
-          audio.play();
+          const alarm = document.getElementById("emergency-alarm");
+          if (alarm) {
+            alarm.currentTime = 0;
+            alarm.play();
+          }
         } catch (e) { console.log("Audio autoplay blocked by browser"); }
       }
       else if (data.event === 'ack_update') {
@@ -275,10 +279,11 @@ function App() {
         setView('emergency_alert');
         
         try {
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3');
-          audio.loop = true;
-          audio.id = "emergency-alarm";
-          audio.play();
+          const alarm = document.getElementById("emergency-alarm");
+          if (alarm) {
+            alarm.currentTime = 0; // Reset to start
+            alarm.play();
+          }
         } catch (e) { console.log("Audio autoplay blocked by browser"); }
       }
       else if (data.event === 'return_to_lobby') {
@@ -299,6 +304,10 @@ function App() {
         } else {
           setView('player'); 
         }
+      }
+      else if (data.event === 'kicked') {
+        alert("You have been removed from the session by the host.");
+        leaveGame();
       }
       else if (data.event === 'game_ended') {
         leaveGame();
@@ -566,6 +575,12 @@ function App() {
     }
   };
 
+  const kickPlayer = (targetAlias) => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ action: 'kick_player', target: targetAlias }));
+    }
+  };
+
   const endGameHost = () => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ action: 'end_game' }));
@@ -624,6 +639,7 @@ function App() {
           saveTask={saveTask} cancelEdit={cancelEdit}
           handleHostGame={handleHostGame} setView={setView}
           roomCode={roomCode} playerList={playerList} startGame={startGame}
+          kickPlayer={kickPlayer}
         />
       )}
 
@@ -667,7 +683,9 @@ function App() {
             <h3>ACTIVE ROSTER</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
               {playerList.map((player, idx) => (
-                <div key={idx} style={{ backgroundColor: '#1a1a1a', padding: '10px 20px', border: '1px solid #444' }}>{player}</div>
+                <div key={idx} className="player-chip kickable" onClick={() => kickPlayer(player)} title={`Click to kick ${player}`}>
+                  {player}
+                </div>
               ))}
             </div>
           </div>
@@ -682,6 +700,7 @@ function App() {
           callEmergency={callEmergency} displayCooldown={displayCooldown} 
           reportNeutralized={reportNeutralized} leaveGame={leaveGame}
           reportBody={reportBody} corpseId={corpseId}
+          alias={alias} roomCode={roomCode} taskProgress={taskProgress}
         />
       )}
 
@@ -698,6 +717,7 @@ function App() {
         <DiscussionPhase 
           displayMeetingTime={displayMeetingTime} 
           alivePlayers={eligibleTargets}
+          playerList={playerList}
           alias={alias} meetingCaller={meetingCaller} startVoting={startVoting}
         />
       )}
@@ -719,6 +739,8 @@ function App() {
       {view === 'game_over' && gameOverData && (
         <GameOver gameOverData={gameOverData} leaveGame={leaveGame} alias={alias} playAgain={playAgain} endGameHost={endGameHost} />
       )}
+
+      <audio id="emergency-alarm" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop />
 
       <TaskModal selectedTask={selectedTask} setSelectedTask={setSelectedTask} />
     </div>

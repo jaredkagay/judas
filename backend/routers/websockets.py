@@ -210,6 +210,81 @@ async def handle_report_body(room_code: str, alias: str, corpse_id: str):
     finally:
         db.close()
 
+async def handle_kick_player(room_code: str, target: str):
+    db = SessionLocal()
+    try:
+        # 1. Remove the player from the database
+        player = db.query(models.Player).filter_by(room_code=room_code, alias=target).first()
+        if player:
+            db.delete(player)
+            db.commit()
+
+        # 2. Tell the target player they've been kicked so their client disconnects
+        await manager.send_personal_message({"event": "kicked"}, room_code, target)
+        
+        # 3. Clean up the connection manager reference
+        manager.disconnect(room_code, target)
+        
+        # 4. Broadcast the updated roster to the lobby
+        active_players = [p for p in manager.active_rooms.get(room_code, {}).keys() 
+                          if p != "ORGANIZER" and not p.startswith("AUX_")]
+        await manager.broadcast(room_code, {
+            "event": "roster_update",
+            "all_players": active_players
+        })
+
+        # 5. Handle Mid-Game Logic (Tasks and Win Conditions)
+        game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+        if game and game.current_phase != "Lobby":
+            
+            # Remove the kicked player's tasks
+            db.query(models.PlayerTask).filter_by(room_code=room_code, player_alias=target).delete()
+            db.commit()
+
+            # Recalculate total task progress
+            all_tasks = db.query(models.PlayerTask).filter_by(room_code=room_code).all()
+            if all_tasks:
+                completed = sum(1 for t in all_tasks if t.is_completed)
+                progress = int((completed / len(all_tasks)) * 100)
+            else:
+                progress = 0
+
+            # Push the updated progress bar to everyone
+            await manager.broadcast(room_code, {
+                "event": "task_progress_update",
+                "progress": progress
+            })
+
+            # Check for win conditions
+            alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
+            alive_crewmates = db.query(models.Player).filter_by(room_code=room_code, role="Crewmate", is_alive=True).count()
+
+            winner = None
+            reason = ""
+
+            # Win Condition A: Kicking the player removed the final unfinished tasks
+            if progress == 100 and len(all_tasks) > 0:
+                winner = "Crewmates"
+                reason = "All Mission Objectives Completed"
+            # Win Condition B: The kicked player was the last Imposter
+            elif alive_imposters == 0:
+                winner = "Crewmates"
+                reason = "All Imposters Neutralized"
+            # Win Condition C: The kicked player was a Crewmate, allowing Imposters to win by majority
+            elif alive_imposters >= alive_crewmates:
+                winner = "Imposters"
+                reason = "Imposters Outnumber Crewmates"
+
+            if winner:
+                await manager.broadcast(room_code, {
+                    "event": "game_over",
+                    "winner": winner,
+                    "reason": reason
+                })
+
+    finally:
+        db.close()
+
 async def handle_play_again(room_code: str):
     db = SessionLocal()
     try:
@@ -247,12 +322,60 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
     try:
         db = SessionLocal()
         try:
+            game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+            is_midgame = game and game.current_phase != "Lobby"
+
             if alias != "ORGANIZER" and not alias.startswith("AUX_"):
                 player = db.query(models.Player).filter_by(room_code=room_code, alias=alias).first()
+                
+                # 1. NEW PLAYER JOINING
                 if not player:
-                    new_player = models.Player(room_code=room_code, alias=alias)
-                    db.add(new_player)
-                    db.commit()
+                    if is_midgame:
+                        new_player = models.Player(room_code=room_code, alias=alias, role="Spectator", is_alive=False)
+                        db.add(new_player)
+                        db.commit()
+                        
+                        await manager.send_personal_message({
+                            "event": "role_reveal",
+                            "role": "Spectator",
+                            "tasks": [],
+                            "teammates": [],
+                            "is_alive": False
+                        }, room_code, alias)
+                    else:
+                        new_player = models.Player(room_code=room_code, alias=alias)
+                        db.add(new_player)
+                        db.commit()
+                
+                # 2. RETURNING PLAYER (If they refresh the page mid-game)
+                else:
+                    if is_midgame and player.role:
+                        player_tasks = db.query(models.PlayerTask).filter_by(room_code=room_code, player_alias=alias).all()
+                        tasks_payload = [{"id": t.id, "task_name": t.task_name, "location": t.location, "description": t.description, "is_completed": t.is_completed} for t in player_tasks]
+                        teammates = [imp.alias for imp in db.query(models.Player).filter_by(room_code=room_code, role="Imposter").all() if imp.alias != alias] if player.role == "Imposter" else []
+                        
+                        await manager.send_personal_message({
+                            "event": "role_reveal",
+                            "role": player.role,
+                            "tasks": tasks_payload,
+                            "teammates": teammates,
+                            "is_alive": player.is_alive
+                        }, room_code, alias)
+
+            # 3. AUXILIARY DEVICE JOINING MID-GAME
+            elif alias.startswith("AUX_"):
+                if is_midgame:
+                    await manager.send_personal_message({
+                        "event": "game_started",
+                        "cooldown": game.cooldown_sec if game else 30
+                    }, room_code, alias)
+
+            # 4. SYNC GLOBAL TASK PROGRESS FOR ALL MID-GAME JOINERS
+            if is_midgame:
+                all_tasks = db.query(models.PlayerTask).filter_by(room_code=room_code).all()
+                if all_tasks:
+                    completed = sum(1 for t in all_tasks if t.is_completed)
+                    await manager.send_personal_message({"event": "task_progress_update", "progress": int((completed / len(all_tasks)) * 100)}, room_code, alias)
 
             active_players = [p for p in manager.active_rooms[room_code].keys() 
                               if p != "ORGANIZER" and not p.startswith("AUX_")]
@@ -289,6 +412,10 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
             elif action == "play_again":
                 if alias == "ORGANIZER":
                     await handle_play_again(room_code)
+            elif action == "kick_player":
+                if alias == "ORGANIZER":
+                    target = payload.get("target")
+                    await handle_kick_player(room_code, target)
             elif action == "end_game":
                 if alias == "ORGANIZER":
                     await handle_end_game(room_code)
