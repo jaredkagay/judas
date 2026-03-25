@@ -50,8 +50,6 @@ function App() {
 
   const [hostId, setHostId] = useState(null);
   const [hostUsername, setHostUsername] = useState('');
-  const [hostPassword, setHostPassword] = useState('');
-  const [authMode, setAuthMode] = useState('login'); 
 
   const [editingTaskId, setEditingTaskId] = useState(null);
 
@@ -70,6 +68,8 @@ function App() {
 
   const [emergencyCooldownEndTime, setEmergencyCooldownEndTime] = useState(0); 
   const [displayEmergencyCooldown, setDisplayEmergencyCooldown] = useState(0);
+
+  const [organizerState, setOrganizerState] = useState({ phase: 'Lobby', players: [] });
 
   const ws = useRef(null);
 
@@ -176,7 +176,7 @@ function App() {
         setHasAcknowledged(false);
         setMeetingAcks(0);
         setMeetingTotal(data.total_alive); 
-        setView('emergency_alert');
+        if (userAlias !== 'ORGANIZER') setView('emergency_alert');
         
         try {
           const alarm = document.getElementById("emergency-alarm");
@@ -200,7 +200,7 @@ function App() {
         const dTime = data.discussion_time || 60;
         setMeetingEndTime(Date.now() + (dTime * 1000));
         setDisplayMeetingTime(dTime);
-        setView('discussion');
+        if (userAlias !== 'ORGANIZER') setView('discussion');
       }
       else if (data.event === 'voting_started') {
         // ADDED FALLBACKS (|| 30)
@@ -208,7 +208,7 @@ function App() {
         setMeetingEndTime(Date.now() + (vTime * 1000));
         setDisplayMeetingTime(vTime); 
         setEligibleTargets(data.eligible_targets || []);
-        setView('voting');
+        if (userAlias !== 'ORGANIZER') setView('voting');
       }
       else if (data.event === 'vote_results') {
         setVoteOutcome({ 
@@ -237,12 +237,17 @@ function App() {
             setVoteOutcome({ eliminated: '', tally: {} });
             setView('aux_dashboard');
           } else {
-            setView('voting_results');
+            if (userAlias !== 'ORGANIZER') setView('voting_results');
           }
         }
       }
       else if (data.event === 'game_started') {
-        if (userAlias === 'ORGANIZER') setView('organizer_dashboard');
+        if (userAlias === 'ORGANIZER') {
+            setView('organizer_dashboard');
+            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                ws.current.send(JSON.stringify({ action: 'request_sync' }));
+            }
+        }
         else if (userAlias.startsWith('AUX_')) setView('aux_dashboard'); 
         
         if (data.cooldown) {
@@ -274,12 +279,12 @@ function App() {
         setHasAcknowledged(false);
         setMeetingAcks(0);
         setMeetingTotal(data.total_alive); 
-        setView('emergency_alert');
+        if (userAlias !== 'ORGANIZER') setView('emergency_alert');
         
         try {
           const alarm = document.getElementById("emergency-alarm");
           if (alarm) {
-            alarm.currentTime = 0; // Reset to start
+            alarm.currentTime = 0;
             alarm.play();
           }
         } catch (e) { console.log("Audio autoplay blocked by browser"); }
@@ -294,6 +299,9 @@ function App() {
         setReportedBody('');
         setMeetingCaller('');
         setCorpseId(null);
+        
+        // Reset task bar for the new game
+        setTaskProgress(0); 
         
         if (userAlias === 'ORGANIZER') {
           setView('host_dashboard');
@@ -324,42 +332,12 @@ function App() {
       else if (data.event === 'kill_confirmed') {
         setDisplayCooldown(data.cooldown);
       }
+      if (data.event === 'organizer_sync') {
+        setOrganizerState({ phase: data.phase, players: data.players });
+      }
     };
     
     ws.current.onclose = () => setIsConnected(false);
-  };
-
-  const authenticateHost = async (e) => {
-    e.preventDefault();
-    if (!hostUsername || !hostPassword) return;
-
-    const endpoint = authMode === 'login' ? '/login' : '/register';
-    
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: hostUsername, password: hostPassword })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(`Authentication failed: ${errorData.detail}`);
-        return;
-      }
-
-      const data = await response.json();
-      
-      setHostId(data.host_id);
-      localStorage.setItem('hostId', data.host_id);
-      localStorage.setItem('hostUsername', data.username);
-      
-      setHostPassword(''); 
-      setView('host_dashboard'); 
-    } catch (error) {
-      console.error("Auth error:", error);
-      alert("Failed to connect to the server.");
-    }
   };
 
   const logoutHost = () => {
@@ -656,12 +634,6 @@ function App() {
         />
       )}
 
-      {view === 'organizer' && (
-        <OrganizerLobby 
-          roomCode={roomCode} startGame={startGame} playerList={playerList} 
-        />
-      )}
-
       {/* These views are small enough to safely leave inline, keeping component overhead low */}
       {view === 'organizer_meeting' && (
         <div style={{ textAlign: 'center', marginTop: '50px' }}>
@@ -680,24 +652,47 @@ function App() {
       )}
 
       {view === 'organizer_dashboard' && (
-        <div style={{ textAlign: 'center', marginTop: '30px', maxWidth: '600px', margin: '0 auto' }}>
-          <h2 style={{ color: '#aaa', letterSpacing: '3px' }}>MISSION IN PROGRESS</h2>
+        <div style={{ textAlign: 'center', marginTop: '30px', maxWidth: '800px', margin: '0 auto' }}>
+          <h2 style={{ color: '#aaa', letterSpacing: '3px' }}>OVERSEER HUB</h2>
           <h1 style={{ fontSize: '40px', color: '#ff3333', margin: '10px 0' }}>{roomCode}</h1>
           
-          <div style={{ marginTop: '40px', padding: '30px', border: '1px solid #33ccff', backgroundColor: '#111' }}>
-            <h3 style={{ color: '#33ccff', marginBottom: '20px', letterSpacing: '2px' }}>CREW TASK COMPLETION</h3>
-            <div style={{ width: '100%', height: '40px', backgroundColor: '#222', border: '2px solid #444', borderRadius: '20px', overflow: 'hidden' }}>
-              <div style={{ width: `${taskProgress}%`, height: '100%', backgroundColor: taskProgress === 100 ? '#00ff00' : '#33ccff', transition: 'width 0.5s ease-out, background-color 0.5s ease' }}></div>
+          <div style={{ margin: '20px 0', padding: '15px', backgroundColor: '#222', border: '1px solid #444', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <h3 style={{ color: '#ffcc00', margin: 0 }}>CURRENT PHASE: {organizerState.phase.toUpperCase()}</h3>
+             
+             {/* Phase Skip Controls */}
+             {organizerState.phase === 'Emergency Alert' && (
+               <button onClick={() => {
+                 if (ws.current) ws.current.send(JSON.stringify({ action: 'force_discussion' }));
+               }} className="btn" style={{ padding: '10px 20px', fontSize: '14px' }}>SKIP TO DISCUSSION</button>
+             )}
+             {organizerState.phase === 'Discussion' && (
+               <button onClick={startVoting} className="btn" style={{ padding: '10px 20px', fontSize: '14px' }}>SKIP TO VOTING</button>
+             )}
+          </div>
+
+          <div style={{ padding: '20px', border: '1px solid #33ccff', backgroundColor: '#111' }}>
+            <h3 style={{ color: '#33ccff', marginBottom: '20px', letterSpacing: '2px' }}>CREW TASK COMPLETION: {taskProgress}%</h3>
+            <div style={{ width: '100%', height: '20px', backgroundColor: '#222', border: '1px solid #444', borderRadius: '10px', overflow: 'hidden' }}>
+              <div style={{ width: `${taskProgress}%`, height: '100%', backgroundColor: taskProgress === 100 ? '#00ff00' : '#33ccff', transition: 'width 0.5s ease' }}></div>
             </div>
-            <h1 style={{ marginTop: '15px', color: taskProgress === 100 ? '#00ff00' : '#f0f0f0', fontSize: '36px' }}>{taskProgress}%</h1>
           </div>
 
           <div style={{ borderTop: '1px solid #333', paddingTop: '20px', marginTop: '40px' }}>
-            <h3>ACTIVE ROSTER</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
-              {playerList.map((player, idx) => (
-                <div key={idx} className="player-chip kickable" onClick={() => kickPlayer(player)} title={`Click to kick ${player}`}>
-                  {player}
+            <h3>MASTER PLAYER ROSTER</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', marginTop: '20px' }}>
+              {organizerState.players.map((p, idx) => (
+                <div key={idx} style={{
+                  padding: '15px', 
+                  backgroundColor: p.is_alive ? '#222' : '#441111',
+                  borderLeft: `5px solid ${p.role === 'Imposter' ? '#ff3333' : '#33ccff'}`,
+                  textAlign: 'left',
+                  borderRadius: '4px'
+                }}>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: p.is_alive ? '#fff' : '#888', textDecoration: p.is_alive ? 'none' : 'line-through' }}>{p.alias}</div>
+                  <div style={{ color: p.role === 'Imposter' ? '#ff3333' : '#33ccff', marginTop: '5px' }}>{p.role || 'Unassigned'}</div>
+                  <div style={{ fontSize: '12px', color: '#aaa', marginTop: '10px' }}>
+                    Status: {p.is_alive ? 'ALIVE' : 'DECEASED'}
+                  </div>
                 </div>
               ))}
             </div>

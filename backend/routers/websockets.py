@@ -9,6 +9,49 @@ from ws_manager import manager
 
 router = APIRouter()
 
+async def send_organizer_sync(room_code: str, custom_phase: str = None):
+    if room_code in manager.active_rooms and "ORGANIZER" in manager.active_rooms[room_code]:
+        db = SessionLocal()
+        try:
+            game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+            players = db.query(models.Player).filter_by(room_code=room_code).all()
+            
+            # Exclude auxiliary displays and the organizer from the master player list
+            player_data = [
+                {
+                    "alias": p.alias,
+                    "role": p.role,
+                    "is_alive": p.is_alive
+                } for p in players if p.alias != "ORGANIZER" and not p.alias.startswith("AUX_")
+            ]
+            
+            phase = custom_phase or (game.current_phase if game else "Lobby")
+            
+            await manager.send_personal_message({
+                "event": "organizer_sync",
+                "phase": phase,
+                "players": player_data
+            }, room_code, "ORGANIZER")
+        finally:
+            db.close()
+
+async def handle_force_discussion(room_code: str):
+    db = SessionLocal()
+    try:
+        alive_players = db.query(models.Player).filter_by(room_code=room_code, is_alive=True).all()
+        alive_aliases = [p.alias for p in alive_players]
+        game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+        
+        await manager.broadcast(room_code, {
+            "event": "discussion_started",
+            "discussion_time": game.discussion_time_sec if game else 60,
+            "alive_agents": list(alive_aliases)
+        })
+        # Sync the host to the new phase
+        await send_organizer_sync(room_code, "Discussion")
+    finally:
+        db.close()
+
 async def handle_trigger_emergency(room_code: str, alias: str):
     db = SessionLocal()
     try:
@@ -20,6 +63,7 @@ async def handle_trigger_emergency(room_code: str, alias: str):
             "caller": alias,
             "total_alive": alive_players 
         })
+        await send_organizer_sync(room_code, "Emergency Alert")
     finally:
         db.close()
 
@@ -47,6 +91,7 @@ async def handle_acknowledge_meeting(room_code: str, alias: str):
                 "discussion_time": game.discussion_time_sec if game else 60,
                 "alive_agents": list(alive_aliases)
             })
+            await send_organizer_sync(room_code, "Discussion")
     finally:
         db.close()
 
@@ -63,6 +108,7 @@ async def handle_start_voting(room_code: str):
             "voting_time": game.voting_time_sec if game else 60,
             "eligible_targets": alive_aliases 
         })
+        await send_organizer_sync(room_code, "Voting")
     finally:
         db.close()
 
@@ -118,6 +164,7 @@ async def handle_submit_vote(room_code: str, alias: str, target: str):
                 "winner": winner,
                 "reason": reason
             })
+            await send_organizer_sync(room_code, "Vote Results")
     finally:
         db.close()
 
@@ -195,6 +242,7 @@ async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: st
                 "winner": "Imposters",
                 "reason": "Imposters Outnumber Crewmates"
             })
+        await send_organizer_sync(room_code, "Action Phase")
     finally:
         db.close()
 
@@ -215,6 +263,8 @@ async def handle_report_body(room_code: str, alias: str, corpse_id: str):
                 "target": dead_alias,
                 "total_alive": alive_players
             })
+
+            await send_organizer_sync(room_code, "Emergency Alert")
         else:
             await manager.send_personal_message({"event": "invalid_corpse_id"}, room_code, alias)
     finally:
@@ -313,6 +363,8 @@ async def handle_play_again(room_code: str):
         await manager.broadcast(room_code, {
             "event": "return_to_lobby"
         })
+
+        await send_organizer_sync(room_code, "Lobby")
     finally:
         db.close()
 
@@ -518,11 +570,13 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
             elif action == "end_game":
                 if alias == "ORGANIZER":
                     await handle_end_game(room_code)
-            elif action == "report_kill":
-                victim_alias = payload.get("victim")
-                killer_alias = payload.get("killer")
-                await handle_report_kill(room_code, victim_alias, killer_alias)
-
+            elif action == "force_discussion":
+                if alias == "ORGANIZER":
+                    await handle_force_discussion(room_code)
+            elif action == "request_sync":
+                if alias == "ORGANIZER":
+                    await send_organizer_sync(room_code)
+    
     except WebSocketDisconnect:
         manager.disconnect(room_code, alias)
         if room_code in manager.active_rooms:
