@@ -9,7 +9,6 @@ class Host(Base):
     username = Column(String, unique=True, index=True)
     password_hash = Column(String)
 
-    # Relationships to access a host's template and tasks easily
     template = relationship("GameTemplate", back_populates="host", uselist=False)
     tasks = relationship("TaskDictionary", back_populates="host")
 
@@ -69,5 +68,6 @@ class PlayerTask(Base):
     player_alias = Column(String, index=True) 
     task_name = Column(String)
     location = Column(String)
+    difficulty = Column(String)
     description = Column(String)
     is_completed = Column(Boolean, default=False)

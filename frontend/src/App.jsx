@@ -10,7 +10,6 @@ import DiscussionPhase from './components/DiscussionPhase';
 import VotingPhase from './components/VotingPhase';
 import VotingResults from './components/VotingResults';
 import GameOver from './components/GameOver';
-import TaskModal from './components/TaskModal';
 import AuxiliaryJoin from './components/AuxiliaryJoin';
 import AuxiliaryDashboard from './components/AuxiliaryDashboard';
 
@@ -37,7 +36,6 @@ function App() {
 
   const [cooldownEndTime, setCooldownEndTime] = useState(0); 
   const [displayCooldown, setDisplayCooldown] = useState(0);
-  const [selectedTask, setSelectedTask] = useState(null);
 
   const [configImposters, setConfigImposters] = useState(1);
   const [configCooldown, setConfigCooldown] = useState(30);
@@ -309,8 +307,22 @@ function App() {
         alert("You have been removed from the session by the host.");
         leaveGame();
       }
+      else if (data.event === 'kill_confirmed') {
+        setDisplayCooldown(data.cooldown);
+      }
       else if (data.event === 'game_ended') {
         leaveGame();
+      }
+      else if (data.event === 'you_died') {
+        setIsAlive(false);
+        setCorpseId(data.corpse_id);
+      } 
+      else if (data.event === 'kill_rejected') {
+        alert("STOP CHEATING!");
+        
+      } 
+      else if (data.event === 'kill_confirmed') {
+        setDisplayCooldown(data.cooldown);
       }
     };
     
@@ -537,11 +549,12 @@ function App() {
     }
   };
 
-  const reportNeutralized = () => {
-    setIsAlive(false);
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ action: 'report_neutralized' }));
-    }
+  const reportNeutralized = (killerAlias) => {
+    ws.current.send(JSON.stringify({
+      action: "report_kill",
+      victim: alias,
+      killer: killerAlias
+    }));
   };
 
   const reportBody = (code) => {
@@ -696,11 +709,12 @@ function App() {
         <PlayerDashboard 
           role={role} showRoleReveal={showRoleReveal} setShowRoleReveal={setShowRoleReveal}
           teammates={teammates} isAlive={isAlive} peekRole={peekRole} setPeekRole={setPeekRole}
-          tasks={tasks} setSelectedTask={setSelectedTask} markTaskComplete={markTaskComplete}
+          tasks={tasks} markTaskComplete={markTaskComplete}
           callEmergency={callEmergency} displayCooldown={displayCooldown} 
           reportNeutralized={reportNeutralized} leaveGame={leaveGame}
           reportBody={reportBody} corpseId={corpseId}
           alias={alias} roomCode={roomCode} taskProgress={taskProgress}
+          playerList={playerList}
         />
       )}
 
@@ -741,8 +755,6 @@ function App() {
       )}
 
       <audio id="emergency-alarm" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop />
-
-      <TaskModal selectedTask={selectedTask} setSelectedTask={setSelectedTask} />
     </div>
   );
 }

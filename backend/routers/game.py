@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 import random
 import string
+import time
 
 from database import get_db
 import models
@@ -80,6 +81,7 @@ async def start_game(room_code: str, config: schemas.HostConfig, db: Session = D
                     "task_name": t.task_name,
                     "location": t.location,
                     "description": t.description,
+                    "difficulty": t.difficulty,
                     "is_completed": False
                 })
                 dummy_id_counter -= 1
@@ -97,6 +99,7 @@ async def start_game(room_code: str, config: schemas.HostConfig, db: Session = D
                     player_alias=player.alias,
                     task_name=t.task_name,
                     location=t.location,
+                    difficulty=t.difficulty,
                     description=t.description 
                 )
                 db.add(new_pt)
@@ -107,6 +110,7 @@ async def start_game(room_code: str, config: schemas.HostConfig, db: Session = D
                     "task_name": new_pt.task_name,
                     "location": new_pt.location,
                     "description": new_pt.description,
+                    "difficulty": new_pt.difficulty,
                     "is_completed": False
                 })
                 
@@ -118,5 +122,10 @@ async def start_game(room_code: str, config: schemas.HostConfig, db: Session = D
         
     db.commit()
     await manager.broadcast(room_code, {"event": "game_started", "cooldown": game.cooldown_sec})
+    
+    import time
+    if not hasattr(manager, 'game_start_times'):
+        manager.game_start_times = {}
+    manager.game_start_times[room_code] = time.time()
     
     return {"status": "Game Started"}

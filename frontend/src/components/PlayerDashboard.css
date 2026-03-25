@@ -246,3 +246,147 @@
   margin-top: 50px;
   border: 1px solid #333;
 }
+
+/* --- NEW TASK CARD STYLES --- */
+
+.tasks-scroll-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.task-card {
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.1s;
+}
+
+.task-card:active {
+  transform: scale(0.98);
+}
+
+.task-card:hover {
+  border-color: #555;
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.task-card-title {
+  color: #f0f0f0;
+  font-size: 18px;
+  margin: 0;
+  font-weight: bold;
+}
+
+.task-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Difficulty Colors */
+.diff-easy { background-color: #0d260d; color: #33cc33; border: 1px solid #33cc33; }
+.diff-medium { background-color: #261f0d; color: #ffcc00; border: 1px solid #ffcc00; }
+.diff-hard { background-color: #260d0d; color: #ff3333; border: 1px solid #ff3333; }
+.diff-default { background-color: #222; color: #aaa; border: 1px solid #444; }
+
+/* Location Color */
+.loc-badge { background-color: #0d1a26; color: #3399ff; border: 1px solid #3399ff; }
+
+.task-card-desc {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Completed Section */
+.completed-tasks-section {
+  margin-top: 30px;
+}
+
+.completed-tasks-title {
+  color: #666;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed #444;
+  padding-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.task-li-completed {
+  opacity: 0.6;
+  background-color: #0a0a0a;
+  margin-bottom: 8px;
+}
+
+.task-li-completed:hover {
+  opacity: 0.8;
+}
+
+.all-tasks-done {
+  text-align: center;
+  color: #00ff00;
+  padding: 20px 0;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+/* --- LINEUP CARD STYLES --- */
+.lineup-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.lineup-card {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  color: white;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.lineup-card:active {
+  transform: scale(0.98);
+}
+
+.lineup-card:hover {
+  background-color: #330000;
+  border-color: #ff3333;
+}

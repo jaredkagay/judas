@@ -1,6 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import json
 import random
+import time
 
 from database import SessionLocal
 import models
@@ -149,14 +150,16 @@ async def handle_complete_task(room_code: str, task_id: int):
     finally:
         db.close()
 
-async def handle_report_neutralized(room_code: str, alias: str):
+async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: str):
     db = SessionLocal()
     try:
-        dead_player = db.query(models.Player).filter_by(room_code=room_code, alias=alias).first()
-        if dead_player and dead_player.is_alive:
-            dead_player.is_alive = False
+        # 1. Mark the victim as dead in the database
+        victim = db.query(models.Player).filter_by(room_code=room_code, alias=victim_alias).first()
+        if victim and victim.is_alive:
+            victim.is_alive = False
             db.commit()
 
+        # 2. Generate a corpse ID so they can be reported
         if room_code not in manager.active_corpses:
             manager.active_corpses[room_code] = {}
             
@@ -164,13 +167,25 @@ async def handle_report_neutralized(room_code: str, alias: str):
         while corpse_id in manager.active_corpses[room_code]:
             corpse_id = str(random.randint(100, 999))
             
-        manager.active_corpses[room_code][corpse_id] = alias
+        manager.active_corpses[room_code][corpse_id] = victim_alias
 
+        # 3. Tell the victim their new corpse ID
         await manager.send_personal_message({
             "event": "corpse_id_assigned",
             "corpse_id": corpse_id
-        }, room_code, alias)
+        }, room_code, victim_alias)
         
+        # 4. Secretly reset the killer's cooldown
+        game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+        cooldown = game.cooldown_sec if game else 30
+        
+        await manager.send_personal_message(
+            {"event": "kill_confirmed", "cooldown": cooldown}, 
+            room_code, 
+            killer_alias
+        )
+
+        # 5. Check if this kill won the game for the Imposters
         alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
         alive_crewmates = db.query(models.Player).filter_by(room_code=room_code, role="Crewmate", is_alive=True).count()
         
@@ -179,11 +194,6 @@ async def handle_report_neutralized(room_code: str, alias: str):
                 "event": "game_over",
                 "winner": "Imposters",
                 "reason": "Imposters Outnumber Crewmates"
-            })
-        else:
-            await manager.broadcast(room_code, {
-                "event": "cooldown_reset",
-                "cooldown": 30
             })
     finally:
         db.close()
@@ -306,6 +316,93 @@ async def handle_play_again(room_code: str):
     finally:
         db.close()
 
+async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: str):
+    import time
+    db = SessionLocal()
+    try:
+        killer = db.query(models.Player).filter_by(room_code=room_code, alias=killer_alias).first()
+        victim = db.query(models.Player).filter_by(room_code=room_code, alias=victim_alias).first()
+
+        if not killer or not victim:
+            return
+
+        # --- RULE 1: ARE THEY AN IMPOSTER? ---
+        if killer.role != "Imposter":
+            await manager.send_personal_message({
+                "event": "kill_rejected",
+                "reason": f"Agent {killer_alias} is not an Imposter."
+            }, room_code, victim_alias)
+            return
+
+        # --- RULE 2: ARE THEY ON COOLDOWN? ---
+        game = db.query(models.GameSession).filter_by(room_code=room_code).first()
+        cooldown_sec = game.cooldown_sec if game else 30
+
+        current_time = time.time()
+        game_start = getattr(manager, 'game_start_times', {}).get(room_code, 0)
+        last_kill = getattr(manager, 'last_kill_times', {}).get(room_code, {}).get(killer_alias, 0)
+        
+        # Check against whichever is most recent: the start of the game, or their last kill
+        most_recent_timer_start = max(game_start, last_kill)
+
+        if current_time - most_recent_timer_start < cooldown_sec:
+            time_left = int(cooldown_sec - (current_time - most_recent_timer_start))
+            await manager.send_personal_message({
+                "event": "kill_rejected",
+                "reason": f"Assassin's weapon is recharging ({time_left}s remaining)."
+            }, room_code, victim_alias)
+            return
+
+        # --- VALIDATION PASSED! EXECUTE THE KILL ---
+        
+        # 1. Record the time of this kill
+        if not hasattr(manager, 'last_kill_times'):
+            manager.last_kill_times = {}
+        if room_code not in manager.last_kill_times:
+            manager.last_kill_times[room_code] = {}
+            
+        manager.last_kill_times[room_code][killer_alias] = current_time
+
+        # 2. Mark victim as dead in DB
+        victim.is_alive = False
+        db.commit()
+
+        # 3. Generate Corpse ID
+        if room_code not in manager.active_corpses:
+            manager.active_corpses[room_code] = {}
+
+        corpse_id = str(random.randint(100, 999))
+        while corpse_id in manager.active_corpses[room_code]:
+            corpse_id = str(random.randint(100, 999))
+
+        manager.active_corpses[room_code][corpse_id] = victim_alias
+
+        # 4. Tell victim they died (this triggers the big red screen + corpse ID)
+        await manager.send_personal_message({
+            "event": "you_died",
+            "corpse_id": corpse_id
+        }, room_code, victim_alias)
+
+        # 5. Secretly reset the Killer's cooldown
+        await manager.send_personal_message({
+            "event": "kill_confirmed",
+            "cooldown": cooldown_sec
+        }, room_code, killer_alias)
+
+        # 6. Check Win Conditions
+        alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
+        alive_crewmates = db.query(models.Player).filter_by(room_code=room_code, role="Crewmate", is_alive=True).count()
+
+        if alive_imposters >= alive_crewmates:
+            await manager.broadcast(room_code, {
+                "event": "game_over",
+                "winner": "Imposters",
+                "reason": "Imposters Outnumber Crewmates"
+            })
+
+    finally:
+        db.close()
+
 async def handle_end_game(room_code: str):
     await manager.broadcast(room_code, {
         "event": "game_ended"
@@ -404,8 +501,6 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
             elif action == "complete_task":
                 task_id = payload.get("task_id")
                 await handle_complete_task(room_code, task_id)
-            elif action == "report_neutralized":
-                await handle_report_neutralized(room_code, alias)
             elif action == "report_body":
                 corpse_id = payload.get("corpse_id")
                 await handle_report_body(room_code, alias, corpse_id)
@@ -416,9 +511,17 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, alias: str):
                 if alias == "ORGANIZER":
                     target = payload.get("target")
                     await handle_kick_player(room_code, target)
+            elif action == "report_kill":
+                victim_alias = payload.get("victim")
+                killer_alias = payload.get("killer")
+                await handle_report_kill(room_code, victim_alias, killer_alias)
             elif action == "end_game":
                 if alias == "ORGANIZER":
                     await handle_end_game(room_code)
+            elif action == "report_kill":
+                victim_alias = payload.get("victim")
+                killer_alias = payload.get("killer")
+                await handle_report_kill(room_code, victim_alias, killer_alias)
 
     except WebSocketDisconnect:
         manager.disconnect(room_code, alias)
