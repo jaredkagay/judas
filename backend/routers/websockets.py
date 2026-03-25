@@ -9,6 +9,15 @@ from ws_manager import manager
 
 router = APIRouter()
 
+async def send_game_log(room_code: str, message: str, involved: list):
+    """Sends a live log event to the Organizer."""
+    if room_code in manager.active_rooms and "ORGANIZER" in manager.active_rooms[room_code]:
+        await manager.send_personal_message({
+            "event": "game_log",
+            "message": message,
+            "involved": involved
+        }, room_code, "ORGANIZER")
+
 async def send_organizer_sync(room_code: str, custom_phase: str = None):
     if room_code in manager.active_rooms and "ORGANIZER" in manager.active_rooms[room_code]:
         db = SessionLocal()
@@ -49,6 +58,7 @@ async def handle_force_discussion(room_code: str):
         })
         # Sync the host to the new phase
         await send_organizer_sync(room_code, "Discussion")
+        await send_game_log(room_code, "🗣️ DISCUSSION PHASE INITIATED", ["SYSTEM"])
     finally:
         db.close()
 
@@ -64,6 +74,8 @@ async def handle_trigger_emergency(room_code: str, alias: str):
             "total_alive": alive_players 
         })
         await send_organizer_sync(room_code, "Emergency Alert")
+        await send_game_log(room_code, f"📢 {alias} called an Emergency Meeting.", [alias])
+        await send_game_log(room_code, "🚨 EMERGENCY PHASE INITIATED", ["SYSTEM"])
     finally:
         db.close()
 
@@ -109,6 +121,7 @@ async def handle_start_voting(room_code: str):
             "eligible_targets": alive_aliases 
         })
         await send_organizer_sync(room_code, "Voting")
+        await send_game_log(room_code, "🗳️ VOTING PHASE INITIATED", ["SYSTEM"])
     finally:
         db.close()
 
@@ -123,6 +136,8 @@ async def handle_submit_vote(room_code: str, alias: str, target: str):
             
         if alias in alive_aliases:
             manager.active_votes[room_code][alias] = target
+
+            await send_game_log(room_code, f"🗳️ {alias} voted for {target}.", [alias, target])
         
         if len(manager.active_votes[room_code]) == len(alive_aliases):
             tally = {}
@@ -141,6 +156,11 @@ async def handle_submit_vote(room_code: str, alias: str, target: str):
                     dead_player.is_alive = False
                     was_imposter = (dead_player.role == "Imposter")
                     db.commit()
+
+            if was_imposter:
+                await send_game_log(room_code, f"⚖️ VOTE CONCLUDED: {dead_player.alias} was eliminated.", ["SYSTEM", dead_player.alias])
+            else:
+                await send_game_log(room_code, "⚖️ VOTE CONCLUDED: No one was eliminated (Skipped/Tie).", ["SYSTEM"])
             
             alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
             alive_crewmates = db.query(models.Player).filter_by(room_code=room_code, role="Crewmate", is_alive=True).count()
@@ -175,6 +195,7 @@ async def handle_complete_task(room_code: str, task_id: int):
         if task and not task.is_completed:
             task.is_completed = True
             db.commit()
+            await send_game_log(room_code, f"✅ {task.player_alias} completed '{task.task_name}' in {task.location}.", [task.player_alias])
             
         all_tasks = db.query(models.PlayerTask).filter_by(room_code=room_code).all()
         if all_tasks:
@@ -197,55 +218,6 @@ async def handle_complete_task(room_code: str, task_id: int):
     finally:
         db.close()
 
-async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: str):
-    db = SessionLocal()
-    try:
-        # 1. Mark the victim as dead in the database
-        victim = db.query(models.Player).filter_by(room_code=room_code, alias=victim_alias).first()
-        if victim and victim.is_alive:
-            victim.is_alive = False
-            db.commit()
-
-        # 2. Generate a corpse ID so they can be reported
-        if room_code not in manager.active_corpses:
-            manager.active_corpses[room_code] = {}
-            
-        corpse_id = str(random.randint(100, 999))
-        while corpse_id in manager.active_corpses[room_code]:
-            corpse_id = str(random.randint(100, 999))
-            
-        manager.active_corpses[room_code][corpse_id] = victim_alias
-
-        # 3. Tell the victim their new corpse ID
-        await manager.send_personal_message({
-            "event": "corpse_id_assigned",
-            "corpse_id": corpse_id
-        }, room_code, victim_alias)
-        
-        # 4. Secretly reset the killer's cooldown
-        game = db.query(models.GameSession).filter_by(room_code=room_code).first()
-        cooldown = game.cooldown_sec if game else 30
-        
-        await manager.send_personal_message(
-            {"event": "kill_confirmed", "cooldown": cooldown}, 
-            room_code, 
-            killer_alias
-        )
-
-        # 5. Check if this kill won the game for the Imposters
-        alive_imposters = db.query(models.Player).filter_by(room_code=room_code, role="Imposter", is_alive=True).count()
-        alive_crewmates = db.query(models.Player).filter_by(room_code=room_code, role="Crewmate", is_alive=True).count()
-        
-        if alive_imposters >= alive_crewmates:
-            await manager.broadcast(room_code, {
-                "event": "game_over",
-                "winner": "Imposters",
-                "reason": "Imposters Outnumber Crewmates"
-            })
-        await send_organizer_sync(room_code, "Action Phase")
-    finally:
-        db.close()
-
 async def handle_report_body(room_code: str, alias: str, corpse_id: str):
     db = SessionLocal()
     try:
@@ -265,6 +237,8 @@ async def handle_report_body(room_code: str, alias: str, corpse_id: str):
             })
 
             await send_organizer_sync(room_code, "Emergency Alert")
+            await send_game_log(room_code, f"🚨 {alias} reported the body of {dead_alias}.", [alias, dead_alias])
+            await send_game_log(room_code, "🚨 EMERGENCY PHASE INITIATED", ["SYSTEM"])
         else:
             await manager.send_personal_message({"event": "invalid_corpse_id"}, room_code, alias)
     finally:
@@ -380,6 +354,8 @@ async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: st
 
         # --- RULE 1: ARE THEY AN IMPOSTER? ---
         if killer.role != "Imposter":
+            await send_game_log(room_code, f"⚠️ CHEAT WARNING: {killer_alias} attempted to report killing {victim_alias} but is not an Imposter!", [killer_alias, victim_alias])
+
             await manager.send_personal_message({
                 "event": "kill_rejected",
                 "reason": f"Agent {killer_alias} is not an Imposter."
@@ -399,6 +375,8 @@ async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: st
 
         if current_time - most_recent_timer_start < cooldown_sec:
             time_left = int(cooldown_sec - (current_time - most_recent_timer_start))
+            await send_game_log(room_code, f"⏳ {killer_alias} attempted to kill {victim_alias} but is on cooldown ({time_left}s).", [killer_alias, victim_alias])
+
             await manager.send_personal_message({
                 "event": "kill_rejected",
                 "reason": f"Assassin's weapon is recharging ({time_left}s remaining)."
@@ -406,6 +384,7 @@ async def handle_report_kill(room_code: str, victim_alias: str, killer_alias: st
             return
 
         # --- VALIDATION PASSED! EXECUTE THE KILL ---
+        await send_game_log(room_code, f"🔪 {killer_alias} eliminated {victim_alias}.", [killer_alias, victim_alias])
         
         # 1. Record the time of this kill
         if not hasattr(manager, 'last_kill_times'):

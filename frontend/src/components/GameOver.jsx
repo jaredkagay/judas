@@ -1,6 +1,17 @@
+import { useState } from 'react';
 import './GameOver.css';
 
-export default function GameOver({ gameOverData, alias, playAgain, endGameHost }) {
+export default function GameOver({ gameOverData, leaveGame, alias, playAgain, endGameHost, gameLogs }) {
+  const [logFilter, setLogFilter] = useState('ALL');
+
+  const filteredLogs = gameLogs?.filter(log => 
+    logFilter === 'ALL' || log?.involved?.includes(logFilter)
+  ) || [];
+
+  const uniquePlayers = Array.from(new Set(
+    gameLogs?.flatMap(log => log.involved).filter(p => p !== 'SYSTEM' && p !== 'ORGANIZER')
+  )) || [];
+
   const isAux = alias?.startsWith('AUX_');
 
   if (!gameOverData) return null;
@@ -46,6 +57,37 @@ export default function GameOver({ gameOverData, alias, playAgain, endGameHost }
           </button>
         </div>
       )}
+
+      {alias === 'ORGANIZER' && (
+        <div className="logs-panel-container" style={{ margin: '30px auto', maxWidth: '600px', textAlign: 'left' }}>
+          <div className="logs-header">
+            <h3 style={{ margin: 0, color: '#ff3333' }}>POST-MISSION RECAP</h3>
+            <select 
+              value={logFilter} 
+              onChange={(e) => setLogFilter(e.target.value)} 
+              className="log-filter"
+            >
+              <option value="ALL">All Events</option>
+              <option value="SYSTEM">System Events</option>
+              {uniquePlayers.map(p => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+          <div className="log-list-scroll" style={{ height: '250px' }}>
+            {filteredLogs.length === 0 ? (
+              <div className="empty-logs">No log data recovered...</div>
+            ) : (
+              filteredLogs.map(log => (
+                <div key={log.id} className="log-entry">
+                  <span className="log-time">[{log.time}]</span> {log.message}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

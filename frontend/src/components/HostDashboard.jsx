@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import './HostDashboard.css';
 
 export default function HostDashboard({
@@ -160,6 +162,7 @@ export default function HostDashboard({
           </div>
         </div>
       </div>
+
       {!roomCode && <button onClick={() => setView('home')} className="cancel-btn">BACK TO MAIN MENU</button>}
     </div>
   );

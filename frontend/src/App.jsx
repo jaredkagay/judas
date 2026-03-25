@@ -28,6 +28,8 @@ function App() {
   const [hasVoted, setHasVoted] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [taskProgress, setTaskProgress] = useState(0);
+  const [gameLogs, setGameLogs] = useState([]);
+  const [logFilter, setLogFilter] = useState('ALL');
 
   const [voteOutcome, setVoteOutcome] = useState({ eliminated: '', tally: {} });
   
@@ -258,6 +260,13 @@ function App() {
       else if (data.event === 'task_progress_update') {
         setTaskProgress(data.progress);
       }
+      else if (data.event === 'game_log') {
+        const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setGameLogs(prev => [
+          { id: Date.now() + Math.random(), time: timeString, message: data.message, involved: data.involved }, 
+          ...prev
+        ]);
+      }
       else if (data.event === 'game_over') {
         setGameOverData({ winner: data.winner, reason: data.reason });
         setView('game_over');
@@ -299,9 +308,8 @@ function App() {
         setReportedBody('');
         setMeetingCaller('');
         setCorpseId(null);
-        
-        // Reset task bar for the new game
         setTaskProgress(0); 
+        setGameLogs([]);
         
         if (userAlias === 'ORGANIZER') {
           setView('host_dashboard');
@@ -578,6 +586,10 @@ function App() {
     }
   };
 
+  const filteredLogs = gameLogs?.filter(log => 
+    logFilter === 'ALL' || log.involved.includes(logFilter)
+  ) || [];
+
   return (
     <div className="app-container">
       <h1 className="app-title">JUDAS</h1>
@@ -630,7 +642,7 @@ function App() {
           saveTask={saveTask} cancelEdit={cancelEdit}
           handleHostGame={handleHostGame} setView={setView}
           roomCode={roomCode} playerList={playerList} startGame={startGame}
-          kickPlayer={kickPlayer}
+          kickPlayer={kickPlayer} gameLogs={gameLogs}
         />
       )}
 
@@ -674,6 +686,34 @@ function App() {
             <h3 style={{ color: '#33ccff', marginBottom: '20px', letterSpacing: '2px' }}>CREW TASK COMPLETION: {taskProgress}%</h3>
             <div style={{ width: '100%', height: '20px', backgroundColor: '#222', border: '1px solid #444', borderRadius: '10px', overflow: 'hidden' }}>
               <div style={{ width: `${taskProgress}%`, height: '100%', backgroundColor: taskProgress === 100 ? '#00ff00' : '#33ccff', transition: 'width 0.5s ease' }}></div>
+            </div>
+          </div>
+
+          <div className="logs-panel-container" style={{ marginTop: '40px', textAlign: 'left' }}>
+            <div className="logs-header">
+              <h3 style={{ margin: 0, color: '#ff3333' }}>LIVE MISSION LOGS</h3>
+              <select 
+                value={logFilter} 
+                onChange={(e) => setLogFilter(e.target.value)} 
+                className="log-filter"
+              >
+                <option value="ALL">All Agents</option>
+                {/* Grab players directly from the organizer state */}
+                {organizerState.players.map(p => (
+                  <option key={p.alias} value={p.alias}>{p.alias}</option>
+                ))}
+              </select>
+            </div>
+            <div className="log-list-scroll">
+              {filteredLogs.length === 0 ? (
+                <div className="empty-logs">Awaiting live event data...</div>
+              ) : (
+                filteredLogs.map(log => (
+                  <div key={log.id} className="log-entry">
+                    <span className="log-time">[{log.time}]</span> {log.message}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -746,7 +786,7 @@ function App() {
       )}
 
       {view === 'game_over' && gameOverData && (
-        <GameOver gameOverData={gameOverData} leaveGame={leaveGame} alias={alias} playAgain={playAgain} endGameHost={endGameHost} />
+        <GameOver gameOverData={gameOverData} leaveGame={leaveGame} alias={alias} playAgain={playAgain} endGameHost={endGameHost} gameLogs={gameLogs} />
       )}
 
       <audio id="emergency-alarm" src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3" loop />
