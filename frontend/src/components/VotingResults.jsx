@@ -4,23 +4,23 @@ export default function VotingResults({ voteOutcome, resumeMission, gameOverData
   const { eliminated, tally, wasImposter, impostersRemaining } = voteOutcome;
 
   return (
-    <div className="results-container">
+    <div className="results-wrapper">
       <h2 className="results-header">VOTING CONCLUDED</h2>
       
-      <div className={`elimination-box ${eliminated === 'NO ONE' ? 'elimination-tied' : 'elimination-player'}`}>
+      <div className={`glass-panel text-center elimination-panel ${eliminated === 'NO ONE' ? 'tied-panel' : 'eliminated-panel'}`}>
         {eliminated === 'NO ONE' ? (
           <h2 className="tied-text">VOTING TIED OR SKIPPED.<br/>NO AGENTS ELIMINATED.</h2>
         ) : (
           <>
-            <h2 className="eliminated-label">AGENT ELIMINATED:</h2>
+            <h3 className="eliminated-label">AGENT ELIMINATED:</h3>
             <h1 className="eliminated-name">{eliminated}</h1>
           </>
         )}
       </div>
 
       {eliminated !== 'NO ONE' && wasImposter !== undefined && wasImposter !== null && (
-        <div className="reveal-container">
-          <h2 className="reveal-text">
+        <div className="glass-panel text-center reveal-panel">
+          <h2 className={`reveal-text ${wasImposter ? 'reveal-imposter' : 'reveal-crewmate'}`}>
             {eliminated} was {wasImposter ? 'an Imposter.' : 'not an Imposter.'}
           </h2>
           <h3 className="reveal-subtext">
@@ -29,22 +29,23 @@ export default function VotingResults({ voteOutcome, resumeMission, gameOverData
         </div>
       )}
 
-      <div className="tally-box">
-        <h3 className="tally-header">FINAL TALLY:</h3>
-        {Object.entries(tally).map(([target, votes]) => (
-          <div key={target} className="tally-row">
-            <span>{target}</span>
-            <span className="tally-count">{votes}</span>
-          </div>
-        ))}
+      <div className="glass-panel tally-panel">
+        <h3 className="tally-header">FINAL TALLY</h3>
+        <div className="tally-list">
+          {Object.entries(tally).sort((a,b) => b[1] - a[1]).map(([target, votes]) => (
+            <div key={target} className="tally-row">
+              <span className="tally-target">{target}</span>
+              <span className="tally-count">{votes}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <button 
-        onClick={resumeMission} 
-        className={`btn resume-btn ${gameOverData ? 'resume-gameover' : 'resume-active'}`}
-      >
-        {gameOverData ? 'VIEW FINAL RESULTS' : 'RESUME MISSION'}
+      {/* Universal Mission Resume Control */}
+      <button onClick={resumeMission} className="btn-primary" style={{ width: '100%', borderColor: '#10b981', color: '#10b981', marginTop: '16px' }}>
+        CONTINUE MISSION
       </button>
+
     </div>
   );
 }

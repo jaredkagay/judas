@@ -1,0 +1,64 @@
+/* frontend/src/components/Host/LobbyManager.css */
+.lobby-standby-text {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+}
+
+.lobby-established-text {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  letter-spacing: 2px;
+  margin: 0 0 8px 0;
+}
+
+.lobby-code-display {
+  font-size: 3.5rem;
+  margin: 0;
+  color: #38bdf8;
+  letter-spacing: 8px;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+}
+
+.lobby-start-btn {
+  background-color: #10b981;
+  color: #000;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.lobby-start-btn:hover {
+  background-color: #059669;
+  color: #fff;
+}
+
+.lobby-roster-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.roster-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.player-chip {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  padding: 8px 12px;
+  border-radius: var(--radius-element);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.player-chip:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  text-decoration: line-through;
+}

@@ -1,0 +1,82 @@
+/* frontend/src/components/Auxiliary.css */
+.aux-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.aux-title {
+  color: var(--text-secondary);
+  letter-spacing: 8px;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+/* frontend/src/components/Auxiliary.css */
+.big-red-button {
+  width: 85vmin; /* Increased from 65 to take up 85% of the shortest screen edge */
+  height: 85vmin;
+  max-width: 800px; /* Increased cap so it grows larger on big iPads */
+  max-height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ff4b4b, #991b1b);
+  border: 16px solid #09090b;
+  
+  /* Multiple shadows to create a tactile 3D housing */
+  box-shadow:
+      0 0 0 12px #2a2a35,
+      0 30px 60px rgba(220, 38, 38, 0.3),
+      inset 0 -15px 30px rgba(0,0,0,0.6),
+      inset 0 15px 30px rgba(255,255,255,0.3);
+      
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.big-red-button:active {
+  /* Physically presses the button down */
+  transform: translateY(15px) scale(0.98);
+  box-shadow:
+      0 0 0 12px #2a2a35,
+      0 10px 20px rgba(220, 38, 38, 0.3),
+      inset 0 -5px 10px rgba(0,0,0,0.6),
+      inset 0 15px 30px rgba(255,255,255,0.3);
+}
+
+.big-red-button:disabled {
+  /* Dead state for when it's recharging */
+  background: radial-gradient(circle at 30% 30%, #3f3f46, #18181b);
+  box-shadow:
+      0 0 0 12px #09090b,
+      inset 0 -10px 20px rgba(0,0,0,0.8);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  transform: translateY(15px); /* Stays visually depressed */
+}
+
+.aux-timer-text {
+  font-size: 4rem;
+  font-family: var(--font-mono);
+  color: var(--accent-red);
+  margin-top: 16px;
+  text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+}

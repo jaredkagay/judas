@@ -1,39 +1,112 @@
 /* frontend/src/components/GameOver.css */
-
-.gameover-container {
-  text-align: center;
-  margin-top: 50px;
+.game-over-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+  animation: fadeIn 1.5s ease-out;
 }
 
-.gameover-header {
-  color: #aaa;
-  letter-spacing: 5px;
+.center-content {
+  justify-content: center;
+  height: 100vh;
 }
 
-.winner-box {
-  margin-top: 40px;
-  padding: 40px 20px;
-  background-color: #111;
+.game-over-subtitle {
+  color: var(--text-secondary);
+  letter-spacing: 6px;
+  margin: 0 0 16px 0;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
 }
 
-.winner-crewmates { border: 2px solid #33ccff; }
-.winner-imposters { border: 2px solid #ff3333; }
-
-.winner-text {
-  font-size: 50px;
-  margin: 0 0 20px 0;
+.game-over-title {
+  font-size: 5rem;
+  margin: 0 0 16px 0;
+  letter-spacing: 8px;
+  font-weight: 900;
   text-transform: uppercase;
+  text-shadow: 0 0 40px currentColor; /* Dynamically inherits the glow from the text color */
 }
 
-.text-crewmates { color: #33ccff; }
-.text-imposters { color: #ff3333; }
+/* Scaling down the massive text for mobile operative screens */
+@media (max-width: 600px) {
+  .game-over-title {
+    font-size: 3rem;
+  }
+}
 
-.reason-text {
-  color: #aaa;
+.text-crewmate {
+  color: #38bdf8;
+}
+
+.text-imposter {
+  color: var(--accent-red);
+}
+
+.game-over-reason {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  font-family: var(--font-mono);
   margin: 0;
 }
 
-.return-lobby-btn {
-  margin-top: 60px;
-  background-color: #333;
+.game-over-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Post-Mission Log Styling */
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 16px;
+}
+
+.logs-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+}
+
+.logs-window {
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+}
+
+.log-entry {
+  background: rgba(0,0,0,0.3);
+  padding: 12px;
+  border-radius: var(--radius-element);
+  border-left: 2px solid var(--glass-border);
+}
+
+.log-time {
+  color: #10b981;
+  margin-right: 12px;
+  font-weight: bold;
+}
+
+.empty-logs {
+  text-align: center;
+  margin-top: 50px;
+  opacity: 0.5;
+  color: var(--text-secondary);
+  font-style: italic;
 }

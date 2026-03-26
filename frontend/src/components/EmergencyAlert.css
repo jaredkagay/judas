@@ -1,73 +1,43 @@
-/* frontend/src/components/EmergencyAlert.css */
-
-@keyframes flashRed {
-  from { background-color: #ff0000; }
-  to { background-color: #550000; }
-}
-
-.alert-overlay {
+.emergency-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #ff0000;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  animation: flashRed 0.8s infinite alternate;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(15, 0, 0, 0.95);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  z-index: 9999; padding: 24px; box-sizing: border-box;
+  animation: redAlertPulse 2s infinite;
 }
 
-.alert-title {
-  font-size: 48px;
-  margin: 0;
-  text-align: center;
-  text-shadow: 0 0 20px black;
+@keyframes redAlertPulse {
+  0% { box-shadow: inset 0 0 0vw rgba(220, 38, 38, 0); }
+  50% { box-shadow: inset 0 0 15vw rgba(220, 38, 38, 0.2); }
+  100% { box-shadow: inset 0 0 0vw rgba(220, 38, 38, 0); }
 }
 
-.alert-caller {
-  margin-top: 20px;
-  background-color: rgba(0,0,0,0.5);
-  padding: 10px 20px;
+.emergency-title {
+  font-size: 2.2rem; color: var(--accent-red); font-weight: 900; letter-spacing: 4px;
+  margin: 0 0 16px 0; text-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
 }
 
-.alert-warning {
-  font-size: 20px;
-  text-align: center;
-  max-width: 300px;
-  margin: 40px 0;
-  font-weight: bold;
+.emergency-caller {
+  color: var(--text-primary); font-size: 1rem; font-family: var(--font-mono); 
+  margin: 0; padding-bottom: 16px; border-bottom: 1px dashed rgba(220, 38, 38, 0.3);
+}
+
+.emergency-warning {
+  color: var(--text-secondary); font-size: 0.85rem; letter-spacing: 1px; line-height: 1.5;
+}
+
+.meeting-acks-display {
+  font-size: 5rem; font-weight: 900; color: #38bdf8; font-family: var(--font-mono);
+  text-shadow: 0 0 30px rgba(56, 189, 248, 0.4); margin-top: 16px;
 }
 
 .ack-box {
-  padding: 20px 40px;
-  font-size: 20px;
-  font-weight: bold;
-  background-color: #222;
-  color: #aaa;
-  border: 5px solid #444;
+  background: rgba(0, 0, 0, 0.5); border: 1px solid var(--glass-border);
+  color: var(--text-secondary); padding: 16px; border-radius: var(--radius-element);
+  font-family: var(--font-mono); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px;
 }
 
-.ack-box-ghost {
-  color: #ff3333;
-  border-color: #ff3333;
-}
-
-.ack-btn {
-  padding: 20px 40px;
-  font-size: 24px;
-  font-weight: bold;
-  background-color: black;
-  color: white;
-  border: 5px solid white;
-  cursor: pointer;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-}
-
-.ack-count {
-  margin-top: 50px;
-  letter-spacing: 3px;
+.ghost-ack {
+  color: var(--accent-red); border-color: rgba(220, 38, 38, 0.3); background: rgba(220, 38, 38, 0.1);
 }

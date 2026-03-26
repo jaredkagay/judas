@@ -1,23 +1,99 @@
-/* frontend/src/components/Home.css */
+/* src/components/Home.css */
+.home-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1; 
+  padding: 24px;
+}
 
-.home-container {
+.home-content {
+  width: 100%;
+  max-width: 400px; 
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--glass-shadow);
+  padding: 48px 32px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  max-width: 300px;
-  margin: 0 auto;
-  margin-top: 50px;
+  gap: 32px;
 }
 
-.home-divider {
+.brand-header {
   text-align: center;
-  margin: 20px 0;
-  color: #555;
-  letter-spacing: 2px;
+  margin-bottom: 8px;
 }
 
-.host-btn {
-  background-color: #1a1a1a;
-  border: 1px solid #444;
-  color: #aaa;
+.brand-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: 8px;
+  margin: 0;
+  /* Updated for better contrast on pure black */
+  background: linear-gradient(to right, #ffffff, #71717a); 
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.brand-subtitle {
+  font-size: 0.8rem;
+  letter-spacing: 4px;
+  color: var(--accent-red);
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.join-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.divider span {
+  padding: 0 16px;
+}
+
+.action-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 8px;
+  transition: color 0.3s;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+}
+
+.btn-text:hover {
+  color: var(--text-primary);
 }

@@ -1,85 +1,44 @@
-/* frontend/src/components/DiscussionPhase.css */
-
-.discussion-container {
-  text-align: center;
-  margin-top: 20px;
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+.discussion-wrapper {
+  display: flex; flex-direction: column; align-items: center; width: 100%;
+  padding: 24px; box-sizing: border-box; animation: fadeIn 0.5s ease-out;
 }
 
 .discussion-title {
-  color: #ffcc00;
-  font-size: 28px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  color: var(--text-secondary); letter-spacing: 4px; margin: 0 0 8px 0;
+  font-family: var(--font-mono); font-size: 1rem;
 }
 
 .discussion-subtitle {
-  color: #aaa;
-  margin: 0;
+  color: var(--text-primary); margin: 0; font-size: 0.9rem;
 }
 
-.discussion-timer {
-  margin: 30px 0;
-  font-size: 64px;
-  font-weight: bold;
+.timer-display {
+  font-size: 5rem; font-weight: 900; color: #38bdf8; letter-spacing: 8px;
+  font-family: var(--font-mono); text-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+  margin: 16px 0 32px 0; font-variant-numeric: tabular-nums;
 }
 
-.timer-active {
-  color: #33ccff;
-  text-shadow: 0 0 10px rgba(51, 204, 255, 0.3);
+.timer-urgent {
+  color: var(--accent-red); text-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
+  animation: pulseText 1s infinite;
 }
 
-.timer-expired {
-  color: #ff3333;
+.roster-header {
+  margin: 0 0 16px 0; color: var(--text-primary); font-family: var(--font-mono);
+  font-size: 0.85rem; border-bottom: 1px dashed var(--glass-border); padding-bottom: 8px;
 }
 
-.roster-box {
-  background-color: #111;
-  padding: 15px;
-  border: 1px solid #333;
-  text-align: left;
-  margin-bottom: 40px;
+.discussion-roster {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
 }
 
-.roster-title {
-  color: #aaa;
-  border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-  margin-top: 0;
+.discussion-agent-chip {
+  background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border);
+  padding: 8px 16px; border-radius: var(--radius-element);
+  font-family: var(--font-mono); font-weight: bold; font-size: 0.9rem;
+  color: var(--text-primary); letter-spacing: 1px;
 }
 
-.roster-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.roster-agent {
-  padding: 10px 0;
-  border-bottom: 1px dashed #222;
-  color: #f0f0f0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.override-btn {
-  width: 100%;
-  background-color: #ffcc00;
-  color: black;
-}
-
-.proceed-btn {
-  width: 100%;
-}
-
-.awaiting-caller-text {
-  color: #666;
-  font-style: italic;
-  padding: 20px;
-  border: 1px dashed #333;
-}
-
-.caller-highlight {
-  color: #ff3333;
+.chip-dead {
+  color: var(--text-secondary); text-decoration: line-through; border-color: rgba(220, 38, 38, 0.3);
 }

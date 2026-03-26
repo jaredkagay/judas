@@ -17,55 +17,43 @@ export default function GameOver({ gameOverData, leaveGame, alias, playAgain, en
   if (!gameOverData) return null;
 
   const isCrewWin = gameOverData.winner === 'Crewmates';
+  const winColorClass = isCrewWin ? 'text-crewmate' : 'text-imposter';
 
   if (isAux) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '15vh' }}>
-        <h2 style={{ color: '#aaa', letterSpacing: '4px' }}>MISSION TERMINATED</h2>
-        <h1 style={{ 
-          fontSize: '80px', 
-          color: isCrewWin ? '#33ccff' : '#ff3333', 
-          margin: '40px 0' 
-        }}>
+      <div className="game-over-wrapper center-content">
+        <h2 className="game-over-subtitle">MISSION TERMINATED</h2>
+        <h1 className={`game-over-title ${winColorClass}`}>
           {gameOverData.winner.toUpperCase()} WIN
         </h1>
-        <p style={{ color: '#777', fontSize: '24px', letterSpacing: '2px', marginTop: '20px' }}>
-          {gameOverData.reason.toUpperCase()}
+        <p className="game-over-reason">
+          {gameOverData.reason}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="gameover-container">
-      <h2 className="gameover-header">MISSION TERMINATED</h2>
-      
-      <div className={`winner-box ${isCrewWin ? 'winner-crewmates' : 'winner-imposters'}`}>
-        <h1 className={`winner-text ${isCrewWin ? 'text-crewmates' : 'text-imposters'}`}>
-          {gameOverData.winner} WIN
+    <div className="game-over-wrapper">
+      <div className="text-center" style={{ marginBottom: '40px' }}>
+        <h2 className="game-over-subtitle">MISSION TERMINATED</h2>
+        <h1 className={`game-over-title ${winColorClass}`}>
+          {gameOverData.winner.toUpperCase()} WIN
         </h1>
-        <h3 className="reason-text">{gameOverData.reason}</h3>
+        <p className="game-over-reason">
+          {gameOverData.reason}
+        </p>
       </div>
 
       {alias === 'ORGANIZER' && (
-        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '40px' }}>
-          <button onClick={playAgain} className="btn" style={{ backgroundColor: '#00cc00' }}>
-            START NEW GAME
-          </button>
-          <button onClick={endGameHost} className="btn return-lobby-btn" style={{ margin: 0 }}>
-            END GAME
-          </button>
-        </div>
-      )}
-
-      {alias === 'ORGANIZER' && (
-        <div className="logs-panel-container" style={{ margin: '30px auto', maxWidth: '600px', textAlign: 'left' }}>
+        <div className="glass-panel" style={{ width: '100%', maxWidth: '800px', marginBottom: '40px' }}>
           <div className="logs-header">
-            <h3 style={{ margin: 0, color: '#ff3333' }}>POST-MISSION RECAP</h3>
+            <h3 className="logs-title" style={{ color: 'var(--text-primary)' }}>POST-MISSION RECAP</h3>
             <select 
               value={logFilter} 
               onChange={(e) => setLogFilter(e.target.value)} 
-              className="log-filter"
+              className="input-base"
+              style={{ padding: '6px 12px', height: 'auto' }}
             >
               <option value="ALL">All Events</option>
               <option value="SYSTEM">System Events</option>
@@ -74,7 +62,7 @@ export default function GameOver({ gameOverData, leaveGame, alias, playAgain, en
               ))}
             </select>
           </div>
-          <div className="log-list-scroll" style={{ height: '250px' }}>
+          <div className="logs-window" style={{ height: '350px' }}>
             {filteredLogs.length === 0 ? (
               <div className="empty-logs">No log data recovered...</div>
             ) : (
@@ -88,6 +76,22 @@ export default function GameOver({ gameOverData, leaveGame, alias, playAgain, en
         </div>
       )}
 
+      <div className="game-over-actions">
+        {alias === 'ORGANIZER' ? (
+          <>
+            <button onClick={playAgain} className="btn-primary" style={{ borderColor: '#10b981', color: '#10b981' }}>
+              INITIALIZE NEW MISSION
+            </button>
+            <button onClick={endGameHost} className="btn-primary" style={{ borderColor: 'var(--accent-red)', color: 'var(--accent-red)' }}>
+              SHUTDOWN SYSTEM
+            </button>
+          </>
+        ) : (
+          <button onClick={leaveGame} className="btn-primary" style={{ width: '100%' }}>
+            DISCONNECT
+          </button>
+        )}
+      </div>
     </div>
   );
 }

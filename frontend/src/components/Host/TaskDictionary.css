@@ -1,0 +1,90 @@
+/* frontend/src/components/Host/TaskDictionary.css */
+.task-category {
+  margin-bottom: 24px;
+}
+
+.category-title {
+  font-family: var(--font-mono);
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--glass-border);
+  margin-bottom: 12px;
+}
+
+.category-hard { color: var(--accent-red); }
+.category-medium { color: #f59e0b; }
+.category-easy { color: #10b981; }
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.3);
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-element);
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+
+.task-item-editing {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.task-name { 
+  font-weight: bold; 
+  font-size: 1.1rem; 
+  color: var(--text-primary);
+}
+
+.task-name.editing-text { color: #f59e0b; }
+
+.task-location { 
+  color: var(--text-secondary); 
+  font-size: 0.85rem; 
+  font-family: var(--font-mono); 
+  margin-top: 4px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.task-action-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: opacity 0.2s;
+}
+
+.task-action-btn:hover { opacity: 0.7; }
+.btn-edit { color: #38bdf8; }
+.btn-delete { color: var(--accent-red); }
+
+.task-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.task-textarea {
+  grid-column: 1 / -1;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.task-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+}

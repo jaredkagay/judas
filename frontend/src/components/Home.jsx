@@ -1,32 +1,60 @@
+// src/components/Home.jsx
 import './Home.css';
 
 export default function Home({ roomCode, setRoomCode, alias, setAlias, joinRoom, setView, hostId }) {
   return (
-    <div className="home-container">
-      <input type="text" placeholder="ROOM CODE" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className="input-field" />
-      <input type="text" placeholder="AGENT ALIAS" value={alias} onChange={(e) => setAlias(e.target.value)} className="input-field" />
-      
-      <button onClick={() => joinRoom(alias, 'player')} className="btn">JOIN MISSION</button>
-      
-      <div className="home-divider">— OR —</div>
-      
-      <button onClick={() => { 
-        if (hostId) {
-          setView('host_dashboard');
-        } else {
-          setView('host_auth'); 
-        }
-      }} className="btn host-btn">
-        HOST MISSION
-      </button>
+    <div className="home-wrapper">
+      <div className="home-content">
+        
+        <div className="brand-header">
+          <h1 className="brand-title">JUDAS</h1>
+          <p className="brand-subtitle">OPERATIVE AUTHENTICATION</p>
+        </div>
 
-      {/* Subtle link for Auxiliary Setup */}
-      <button 
-        onClick={() => setView('aux_setup')} 
-        style={{ marginTop: '40px', background: 'none', border: 'none', color: '#555', textDecoration: 'underline', cursor: 'pointer', fontSize: '14px' }}
-      >
-        Configure Auxiliary Device
-      </button>
+        <div className="join-section">
+          <input 
+            type="text" 
+            placeholder="Room Code" 
+            value={roomCode} 
+            onChange={(e) => setRoomCode(e.target.value)} 
+            className="input-base" 
+          />
+          <input 
+            type="text" 
+            placeholder="Agent Alias" 
+            value={alias} 
+            onChange={(e) => setAlias(e.target.value)} 
+            className="input-base" 
+          />
+          <button onClick={() => joinRoom(alias, 'player')} className="btn-primary btn-accent">
+            Join Mission
+          </button>
+        </div>
+        
+        <div className="divider">
+          <span>OR</span>
+        </div>
+        
+        <div className="action-section">
+          <button onClick={() => { 
+            if (hostId) {
+              setView('host_dashboard');
+            } else {
+              setView('host_auth'); 
+            }
+          }} className="btn-primary">
+            Host Mission
+          </button>
+
+          <button 
+            onClick={() => setView('aux_setup')} 
+            className="btn-text"
+          >
+            Configure Auxiliary Device
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }

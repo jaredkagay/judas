@@ -1,0 +1,32 @@
+/* frontend/src/components/Host/GameSettingsPanel.css */
+
+.settings-header {
+  margin: 0 0 24px 0;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 12px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.settings-number-input {
+  width: 70px;
+  text-align: center;
+  padding: 8px;
+}
+
+.settings-save-btn {
+  width: 100%;
+  margin-top: 16px;
+}

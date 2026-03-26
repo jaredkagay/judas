@@ -1,5 +1,5 @@
+// frontend/src/components/HostAuth.jsx
 import { useState } from 'react';
-import './HostAuth.css';
 
 export default function HostAuth({ setHostId, setHostUsername, setView }) {
   const [authMode, setAuthMode] = useState('login'); 
@@ -41,29 +41,34 @@ export default function HostAuth({ setHostId, setHostUsername, setView }) {
   };
 
   return (
-    <form onSubmit={authenticateHost} className="auth-form">
-      <h2 className="auth-title">HOST {authMode}</h2>
-      
-      <input 
-        type="text" placeholder="USERNAME" required className="input-field"
-        value={localUsername} onChange={(e) => setLocalUsername(e.target.value)} 
-      />
-      <input 
-        type="password" placeholder="PASSWORD" required className="input-field"
-        value={localPassword} onChange={(e) => setLocalPassword(e.target.value)} 
-      />
-      
-      <button type="submit" className="btn">
-        {authMode === 'login' ? 'ACCESS DASHBOARD' : 'INITIALIZE ACCOUNT'}
-      </button>
-      
-      <div onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="auth-toggle">
-        {authMode === 'login' ? 'Need an account? Register here.' : 'Already have clearance? Log in.'}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw' }}>
+      <div className="glass-panel text-center" style={{ maxWidth: '400px', width: '90%' }}>
+        <h2 style={{ color: 'var(--text-secondary)', letterSpacing: '4px', marginBottom: '32px', fontFamily: 'var(--font-mono)' }}>
+          HOST {authMode.toUpperCase()}
+        </h2>
+        
+        <form onSubmit={authenticateHost} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <input 
+            type="text" placeholder="USERNAME" required className="input-base"
+            value={localUsername} onChange={(e) => setLocalUsername(e.target.value)} 
+          />
+          <input 
+            type="password" placeholder="PASSWORD" required className="input-base"
+            value={localPassword} onChange={(e) => setLocalPassword(e.target.value)} 
+          />
+          
+          <button type="submit" className="btn-primary btn-accent" style={{ marginTop: '16px' }}>
+            {authMode === 'login' ? 'ACCESS COMMAND CENTER' : 'INITIALIZE ACCOUNT'}
+          </button>
+        </form>
+        
+        <div 
+          onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} 
+          style={{ marginTop: '24px', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
+        >
+          {authMode === 'login' ? 'Need clearance? Register here.' : 'Already have clearance? Login.'}
+        </div>
       </div>
-
-      <button type="button" onClick={() => setView('home')} className="cancel-btn auth-cancel">
-        CANCEL
-      </button>
-    </form>
+    </div>
   );
 }

@@ -1,81 +1,80 @@
-/* frontend/src/components/VotingPhase.css */
-
-@keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
+.voting-wrapper {
+  display: flex; flex-direction: column; align-items: center; width: 100%;
+  padding: 24px; box-sizing: border-box; animation: fadeIn 0.5s ease-out;
 }
 
-.voting-container {
-  text-align: center;
-  margin-top: 20px;
+.center-content {
+  justify-content: center; height: 100vh;
 }
 
-.voting-alert-title {
-  color: #ff3333;
-  font-size: 28px;
-  animation: blink 1s infinite;
+.voting-title {
+  font-size: 1.5rem; font-weight: 900; letter-spacing: 4px; margin: 0 0 8px 0;
+  text-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
 }
 
-.voting-caller-info {
-  font-size: 18px;
-  margin-bottom: 15px;
+.voting-caller {
+  color: var(--text-primary); margin: 0; font-family: var(--font-mono); font-size: 0.85rem;
 }
 
-.voting-timer {
-  margin: 20px 0;
-  font-size: 48px;
-  font-weight: bold;
+.voting-subtitle {
+  color: var(--text-secondary); letter-spacing: 4px; margin: 0;
+  font-family: var(--font-mono); font-size: 1rem;
 }
 
-.timer-active { color: #ffcc00; }
-.timer-expired { color: #ff3333; }
-
-.status-box {
-  margin-top: 50px;
-  padding: 20px;
-  background-color: #111;
+.timer-display {
+  font-size: 5rem; font-weight: 900; color: #38bdf8; letter-spacing: 8px;
+  font-family: var(--font-mono); text-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+  margin: 16px 0 32px 0; font-variant-numeric: tabular-nums;
 }
 
-.status-awaiting {
-  border: 1px solid #aaa;
-  color: #aaa;
+.timer-urgent {
+  color: var(--accent-red); text-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
+  animation: pulseText 1s infinite;
 }
 
-.status-voted {
-  border: 1px solid #33ccff;
-  color: #33ccff;
+.status-header {
+  margin: 0 0 8px 0; font-family: var(--font-mono); font-size: 1rem; color: var(--text-primary);
+  letter-spacing: 2px;
 }
 
-.status-ghost {
-  border: 1px solid #666;
-  color: #aaa;
+.status-text {
+  color: var(--text-secondary); margin: 0; font-size: 0.85rem; line-height: 1.5;
 }
 
-.targets-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 300px;
-  margin: 0 auto;
+.targets-grid {
+  display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px;
 }
 
 .target-btn {
-  padding: 15px;
-  background-color: #1a1a1a;
-  color: #f0f0f0;
-  border: 1px solid #444;
-  cursor: pointer;
-  font-size: 18px;
-  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border);
+  color: var(--text-primary); padding: 16px; font-size: 1.1rem; font-weight: 700;
+  letter-spacing: 2px; border-radius: var(--radius-element); cursor: pointer;
+  transition: all 0.2s ease; text-transform: uppercase;
+}
+
+.target-btn:hover {
+  background: rgba(220, 38, 38, 0.15); border-color: var(--accent-red); color: var(--accent-red);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+}
+
+.target-btn:active {
+  transform: scale(0.98);
 }
 
 .skip-btn {
-  padding: 15px;
-  background-color: #333;
-  color: #aaa;
-  border: 1px dashed #666;
-  cursor: pointer;
-  font-size: 18px;
-  margin-top: 20px;
+  width: 100%; background: transparent; border: 1px dashed var(--text-secondary);
+  color: var(--text-secondary); padding: 16px; font-family: var(--font-mono);
+  font-size: 0.9rem; font-weight: bold; letter-spacing: 2px; border-radius: var(--radius-element);
+  cursor: pointer; transition: all 0.2s ease;
+}
+
+.skip-btn:hover {
+  background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border-color: var(--text-primary);
+}
+
+.ghost-panel {
+  border-color: rgba(220, 38, 38, 0.3); background: rgba(220, 38, 38, 0.05);
+}
+.ghost-panel .status-header {
+  color: var(--accent-red);
 }

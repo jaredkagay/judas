@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './PlayerDashboard.css';
-import DirectivesView from './DirectivesView';         // Adjust path if needed
-import FatalitySystemView from './FatalitySystemView'; // Adjust path if needed
+import DirectivesView from './DirectivesView';
+import FatalitySystemView from './FatalitySystemView';
 
 export default function PlayerDashboard({
   role, showRoleReveal, setShowRoleReveal, teammates,
@@ -36,11 +36,16 @@ export default function PlayerDashboard({
   // DECEASED SCREEN HIJACK
   if (!isAlive && role && corpseId) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px' }}>
-        <h1 style={{ color: '#ff3333', fontSize: '40px', letterSpacing: '2px' }}>YOU ARE DECEASED</h1>
-        <p style={{ color: '#aaa', marginTop: '20px' }}>WAIT IN PLACE. YOUR CORPSE ID IS:</p>
-        <div style={{ fontSize: '90px', fontWeight: 'bold', color: 'white', letterSpacing: '10px', margin: '30px 0' }}>{corpseId}</div>
-        <p style={{ color: '#777' }}>Do not speak. Another agent must enter this code to report you.</p>
+      <div className="deceased-screen">
+        <div className="glass-panel text-center">
+          <svg className="death-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h1 className="deceased-title">NEUTRALIZED</h1>
+          <p className="deceased-sub">WAIT IN PLACE. YOUR CORPSE ID IS:</p>
+          <div className="corpse-id-display">{corpseId}</div>
+          <p className="deceased-warning">Do not speak. Another agent must enter this code to report you.</p>
+        </div>
       </div>
     );
   }
@@ -48,24 +53,28 @@ export default function PlayerDashboard({
   return (
     <div className="player-wrapper">
       {!role ? (
-        <div className="waiting-screen" style={{ flexDirection: 'column' }}>
-          <h3 className="waiting-text" style={{ marginBottom: '30px' }}>AWAITING MISSION BRIEFING...</h3>
-          <button onClick={leaveGame} className="btn" style={{ backgroundColor: '#444' }}>DISCONNECT</button>
+        <div className="waiting-screen">
+          <h3 className="waiting-text">AWAITING MISSION BRIEFING...</h3>
+          <button onClick={leaveGame} className="btn-primary" style={{ marginTop: '20px' }}>DISCONNECT</button>
         </div>
       ) : showRoleReveal ? (
         <div className="reveal-overlay">
-          <h3 className="reveal-label">YOUR CLEARANCE:</h3>
-          <h1 className={`reveal-role ${role === 'Imposter' ? 'role-imposter' : role === 'Spectator' ? 'role-spectator' : 'role-crewmate'}`} style={{ color: role === 'Spectator' ? '#aaaaaa' : undefined }}>{role}</h1>
-          <p className="reveal-desc">
-            {role === 'Imposter' ? 'Eliminate the crew. Fake your tasks. Do not get caught.' : role === 'Spectator' ? 'You have joined an ongoing mission. Observe quietly.' : 'Complete your directives. Find the Imposter. Stay alive.'}
-          </p>
-          {role === 'Imposter' && teammates.length > 0 && (
-            <div className="associates-box">
-              <div className="associates-label">KNOWN ASSOCIATES:</div>
-              <div className="associates-list">{teammates.join(', ')}</div>
-            </div>
-          )}
-          <button onClick={() => setShowRoleReveal(false)} className="btn ack-reveal-btn">ACKNOWLEDGE</button>
+          <div className="glass-panel text-center" style={{ width: '90%', maxWidth: '350px' }}>
+            <h3 className="reveal-label">YOUR CLEARANCE:</h3>
+            <h1 className={`reveal-role ${role === 'Imposter' ? 'role-imposter' : role === 'Spectator' ? 'role-spectator' : 'role-crewmate'}`}>
+              {role}
+            </h1>
+            <p className="reveal-desc">
+              {role === 'Imposter' ? 'Eliminate the crew. Fake your tasks. Do not get caught.' : role === 'Spectator' ? 'You have joined an ongoing mission. Observe quietly.' : 'Complete your directives. Find the Imposter. Stay alive.'}
+            </p>
+            {role === 'Imposter' && teammates.length > 0 && (
+              <div className="associates-box">
+                <div className="associates-label">KNOWN ASSOCIATES:</div>
+                <div className="associates-list">{teammates.join(', ')}</div>
+              </div>
+            )}
+            <button onClick={() => setShowRoleReveal(false)} className="btn-primary" style={{ marginTop: '40px', width: '100%' }}>ACKNOWLEDGE</button>
+          </div>
         </div>
       ) : (
         <div className="dashboard-main">
@@ -73,41 +82,43 @@ export default function PlayerDashboard({
           {!isAlive && <div className="ghost-status">STATUS: NEUTRALIZED (GHOST MODE)</div>}
 
           {/* GLOBAL HUD BANNER */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1a1a', padding: '10px 15px', border: '1px solid #444', marginBottom: '15px', fontSize: '14px', color: '#ccc', width: '100%', maxWidth: '350px', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <div><strong>AGENT:</strong> <span style={{color: 'white'}}>{alias}</span></div>
-                <div><strong>UPLINK:</strong> <span style={{color: '#33ccff'}}>{roomCode}</span></div>
+          <div className="hud-banner">
+            <div className="hud-info">
+                <div><span className="hud-label">AGENT:</span> <span className="hud-value">{alias}</span></div>
+                <div><span className="hud-label">UPLINK:</span> <span className="hud-value" style={{color: 'var(--text-secondary)'}}>{roomCode}</span></div>
             </div>
-            <button onPointerDown={() => setPeekRole(true)} onPointerUp={() => setPeekRole(false)} onPointerLeave={() => setPeekRole(false)} className="verify-btn" style={{ height: '100%', padding: '10px' }}>HOLD TO VERIFY</button>
+            <button onPointerDown={() => setPeekRole(true)} onPointerUp={() => setPeekRole(false)} onPointerLeave={() => setPeekRole(false)} className="verify-btn">
+              HOLD TO VERIFY
+            </button>
           </div>
 
-          <div style={{ marginBottom: '20px', width: '100%', maxWidth: '350px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '12px', color: '#aaa' }}>
+          <div className="progress-container">
+            <div className="progress-header">
               <span>MISSION PROGRESS</span><span>{taskProgress}%</span>
             </div>
-            <div style={{ width: '100%', height: '10px', backgroundColor: '#222', border: '1px solid #444', borderRadius: '5px', overflow: 'hidden' }}>
-              <div style={{ width: `${taskProgress}%`, height: '100%', backgroundColor: taskProgress === 100 ? '#00ff00' : '#33ccff', transition: 'width 0.5s ease-out, background-color 0.5s ease' }}></div>
+            <div className="progress-bar-bg">
+              <div className="progress-bar-fill" style={{ width: `${taskProgress}%`, backgroundColor: taskProgress === 100 ? '#10b981' : 'var(--text-secondary)' }}></div>
             </div>
           </div>
 
-          <div className={`dashboard-content ${isAlive ? 'alive-opacity' : 'ghost-opacity'}`} style={{ width: '100%', maxWidth: '350px', position: 'relative' }}>
+          <div className={`dashboard-content ${isAlive ? 'alive-opacity' : 'ghost-opacity'}`}>
             
             {peekRole && (
-                <div className="peek-box" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, boxSizing: 'border-box' }}>
+                <div className="peek-box glass-panel">
                     <div className="peek-label">YOU ARE</div>
-                    <div className={`peek-role ${role === 'Imposter' ? 'role-imposter' : 'role-crewmate'}`} style={{ marginBottom: teammates.length > 0 ? '20px' : '20px', color: role === 'Spectator' ? '#aaaaaa' : undefined }}>{role}</div>
+                    <div className={`peek-role ${role === 'Imposter' ? 'role-imposter' : 'role-crewmate'}`}>{role}</div>
                     {role === 'Imposter' && isAlive && (
-                        <div style={{ borderTop: '1px solid #333', paddingTop: '20px', marginBottom: '20px' }}>
-                            <div className="associates-label" style={{fontSize: '12px'}}>WEAPON STATUS</div>
-                            <div style={{ color: displayCooldown > 0 ? '#ff3333' : '#00ff00', fontSize: '24px', fontWeight: 'bold' }}>
+                        <div className="peek-weapon-status">
+                            <div className="associates-label">WEAPON STATUS</div>
+                            <div style={{ color: displayCooldown > 0 ? 'var(--accent-red)' : '#10b981', fontSize: '24px', fontWeight: 'bold' }}>
                                 {displayCooldown > 0 ? `RECHARGING (${displayCooldown}s)` : 'READY TO KILL'}
                             </div>
                         </div>
                     )}
                     {role === 'Imposter' && teammates.length > 0 && (
                       <div className="peek-associates">
-                        <div className="associates-label" style={{fontSize: '10px'}}>ASSOCIATES</div>
-                        <div style={{ color: '#ccc', fontSize: '14px' }}>{teammates.join(', ')}</div>
+                        <div className="associates-label">ASSOCIATES</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{teammates.join(', ')}</div>
                       </div>
                     )}
                 </div>
@@ -116,13 +127,36 @@ export default function PlayerDashboard({
             {!peekRole && (
                 <>
                     {activeTab === 'main' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
-                        <button className="btn" onClick={() => setActiveTab('tasks')} style={{ width: '100%', backgroundColor: '#33ccff', color: 'black' }}>VIEW DIRECTIVES</button>
-                        <button className="btn" onClick={() => setActiveTab('map')} style={{ width: '100%', backgroundColor: '#ffcc00', color: 'black' }}>ACCESS MAP</button>
+                    <div className="dashboard-grid">
+                        <button className="square-btn" onClick={() => setActiveTab('tasks')}>
+                            <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            <span className="btn-label">DIRECTIVES</span>
+                        </button>
+                        
+                        <button className="square-btn" onClick={() => setActiveTab('map')}>
+                            <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            <span className="btn-label">INTEL MAP</span>
+                        </button>
+
                         {isAlive && (
                         <>
-                            <button className="btn" onClick={() => setActiveTab('report')} style={{ width: '100%', backgroundColor: '#ff3333' }}>REPORT A BODY</button>
-                            <button className="btn" onClick={() => { setActiveTab('deaths'); setSelectingKiller(false); }} style={{ width: '100%', backgroundColor: '#111', border: '1px solid #555', color: '#aaa' }}>CASUALTY REPORT</button>
+                            <button className="square-btn btn-danger" onClick={() => setActiveTab('report')}>
+                                <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span className="btn-label">REPORT BODY</span>
+                            </button>
+                            
+                            <button className="square-btn btn-danger" onClick={() => { setActiveTab('deaths'); setSelectingKiller(false); }}>
+                              <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                              <span className="btn-label">CASUALTIES</span>
+                          </button>
                         </>
                         )}
                     </div>
@@ -141,25 +175,26 @@ export default function PlayerDashboard({
                     )}
 
                     {activeTab === 'report' && isAlive && (
-                    <div style={{ width: '100%', textAlign: 'center', backgroundColor: '#111', padding: '20px', border: '1px solid #444', boxSizing: 'border-box' }}>
-                        <h2 style={{ color: '#ff3333', marginBottom: '20px' }}>ENTER CORPSE ID</h2>
+                    <div className="glass-panel text-center">
+                        <h2 style={{ color: 'var(--accent-red)', marginBottom: '20px', letterSpacing: '2px' }}>ENTER CORPSE ID</h2>
                         <input 
-                        type="number" placeholder="000" maxLength="3" value={corpseInput}
-                        onChange={(e) => setCorpseInput(e.target.value.slice(0, 3))}
-                        style={{ width: '100%', padding: '15px', fontSize: '40px', textAlign: 'center', letterSpacing: '15px', backgroundColor: '#050505', color: 'white', border: '1px solid #333', marginBottom: '20px', boxSizing: 'border-box' }}
+                          type="number" placeholder="000" maxLength="3" value={corpseInput}
+                          onChange={(e) => setCorpseInput(e.target.value.slice(0, 3))}
+                          className="input-base"
+                          style={{ width: '100%', padding: '20px', fontSize: '40px', textAlign: 'center', letterSpacing: '20px', marginBottom: '24px', boxSizing: 'border-box' }}
                         />
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={handleReportSubmit} className="btn" style={{ flex: 1, backgroundColor: '#ff3333' }}>REPORT</button>
-                        <button onClick={() => setActiveTab('main')} className="btn" style={{ flex: 1, backgroundColor: '#444' }}>CANCEL</button>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <button onClick={handleReportSubmit} className="btn-primary btn-accent" style={{ flex: 1 }}>REPORT</button>
+                          <button onClick={() => setActiveTab('main')} className="btn-primary" style={{ flex: 1 }}>CANCEL</button>
                         </div>
                     </div>
                     )}
 
                     {activeTab === 'map' && (
-                    <div style={{ width: '100%', textAlign: 'center', backgroundColor: '#111', padding: '40px 20px', border: '1px solid #444', boxSizing: 'border-box' }}>
-                        <h2 style={{ color: '#ffcc00', marginBottom: '20px' }}>MAP SYSTEM</h2>
-                        <p style={{ color: '#aaa', fontStyle: 'italic', marginBottom: '30px' }}>[WORK IN PROGRESS]</p>
-                        <button className="btn" onClick={() => setActiveTab('main')} style={{ width: '100%', backgroundColor: '#444' }}>BACK TO DASHBOARD</button>
+                    <div className="glass-panel text-center">
+                        <h2 style={{ color: 'var(--text-primary)', marginBottom: '20px' }}>INTEL MAP</h2>
+                        <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '30px' }}>[UPLINK IN PROGRESS]</p>
+                        <button className="btn-primary" onClick={() => setActiveTab('main')} style={{ width: '100%' }}>BACK</button>
                     </div>
                     )}
                 </>
