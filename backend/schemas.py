@@ -9,6 +9,9 @@ class TemplateUpdate(BaseModel):
     cooldown_sec: int
     discussion_time_sec: int
     voting_time_sec: int
+    task_count_hard: int
+    task_count_medium: int
+    task_count_easy: int
 
 class TaskCreate(BaseModel):
     host_id: int
@@ -29,3 +32,6 @@ class HostConfig(BaseModel):
     cooldown_sec: int
     discussion_time_sec: int
     voting_time_sec: int
+    task_count_hard: int
+    task_count_medium: int
+    task_count_easy: int

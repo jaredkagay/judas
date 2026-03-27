@@ -5,6 +5,9 @@ export default function GameSettingsPanel({
   configCooldown, setConfigCooldown,
   configDiscussionTime, setConfigDiscussionTime,
   configVotingTime, setConfigVotingTime,
+  configTasksHard, setConfigTasksHard,
+  configTasksMedium, setConfigTasksMedium,
+  configTasksEasy, setConfigTasksEasy,
   saveTemplateSettings
 }) {
   return (
@@ -51,6 +54,39 @@ export default function GameSettingsPanel({
           value={configVotingTime} 
           onChange={(e) => setConfigVotingTime(parseInt(e.target.value))} 
           min={10} max={300} 
+          className="input-base settings-number-input" 
+        />
+      </div>
+
+      <div className="settings-row">
+        <span>HARD TASKS</span>
+        <input 
+          type="number" 
+          value={configTasksHard} 
+          onChange={(e) => setConfigTasksHard(parseInt(e.target.value) || 0)} 
+          min={0} max={10} 
+          className="input-base settings-number-input" 
+        />
+      </div>
+      
+      <div className="settings-row">
+        <span>MEDIUM TASKS</span>
+        <input 
+          type="number" 
+          value={configTasksMedium} 
+          onChange={(e) => setConfigTasksMedium(parseInt(e.target.value) || 0)} 
+          min={0} max={10} 
+          className="input-base settings-number-input" 
+        />
+      </div>
+      
+      <div className="settings-row">
+        <span>EASY TASKS</span>
+        <input 
+          type="number" 
+          value={configTasksEasy} 
+          onChange={(e) => setConfigTasksEasy(parseInt(e.target.value) || 0)} 
+          min={0} max={15} 
           className="input-base settings-number-input" 
         />
       </div>

@@ -22,6 +22,9 @@ class GameTemplate(Base):
     cooldown_sec = Column(Integer, default=30)
     discussion_time_sec = Column(Integer, default=60)
     voting_time_sec = Column(Integer, default=30)
+    task_count_hard = Column(Integer, default=1)
+    task_count_medium = Column(Integer, default=2)
+    task_count_easy = Column(Integer, default=3)
 
     host = relationship("Host", back_populates="template")
 
@@ -50,6 +53,9 @@ class GameSession(Base):
     cooldown_sec = Column(Integer, default=30)
     discussion_time_sec = Column(Integer, default=60)
     voting_time_sec = Column(Integer, default=30)
+    task_count_hard = Column(Integer, default=1)
+    task_count_medium = Column(Integer, default=2)
+    task_count_easy = Column(Integer, default=3)
 
 class Player(Base):
     __tablename__ = "players"

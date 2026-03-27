@@ -14,14 +14,14 @@ router = APIRouter()
 def generate_room_code():
     return ''.join(random.choices(string.ascii_uppercase, k=4))
 
-def get_randomized_tasks(all_tasks):
+def get_randomized_tasks(all_tasks, hard_count, med_count, easy_count):
     hard_tasks = [t for t in all_tasks if t.difficulty == "Hard"]
     med_tasks = [t for t in all_tasks if t.difficulty == "Medium"]
     easy_tasks = [t for t in all_tasks if t.difficulty == "Easy"]
     
-    assigned_hard = random.sample(hard_tasks, min(1, len(hard_tasks)))
-    assigned_med = random.sample(med_tasks, min(2, len(med_tasks)))
-    assigned_easy = random.sample(easy_tasks, min(3, len(easy_tasks)))
+    assigned_hard = random.sample(hard_tasks, min(hard_count, len(hard_tasks)))
+    assigned_med = random.sample(med_tasks, min(med_count, len(med_tasks)))
+    assigned_easy = random.sample(easy_tasks, min(easy_count, len(easy_tasks)))
     
     return assigned_hard + assigned_med + assigned_easy
 
@@ -42,7 +42,10 @@ def create_game(config: schemas.HostConfig, db: Session = Depends(get_db)):
         imposter_count=config.imposter_count,
         cooldown_sec=config.cooldown_sec,
         discussion_time_sec=config.discussion_time_sec,
-        voting_time_sec=config.voting_time_sec
+        voting_time_sec=config.voting_time_sec,
+        task_count_hard=config.task_count_hard,
+        task_count_medium=config.task_count_medium,
+        task_count_easy=config.task_count_easy
     )
     db.add(new_game)
     db.commit()
@@ -51,11 +54,14 @@ def create_game(config: schemas.HostConfig, db: Session = Depends(get_db)):
 @router.post("/start/{room_code}")
 async def start_game(room_code: str, config: schemas.HostConfig, db: Session = Depends(get_db)):
     game = db.query(models.GameSession).filter_by(room_code=room_code).first()
-    
+
     game.imposter_count = config.imposter_count
     game.cooldown_sec = config.cooldown_sec
     game.discussion_time_sec = config.discussion_time_sec
     game.voting_time_sec = config.voting_time_sec
+    game.task_count_hard = config.task_count_hard
+    game.task_count_medium = config.task_count_medium
+    game.task_count_easy = config.task_count_easy
     
     game.current_phase = "Playing"
     
@@ -68,7 +74,12 @@ async def start_game(room_code: str, config: schemas.HostConfig, db: Session = D
     dummy_id_counter = -1 
 
     for player in players:
-        assigned_tasks = get_randomized_tasks(all_tasks)
+        assigned_tasks = get_randomized_tasks(
+            all_tasks, 
+            config.task_count_hard, 
+            config.task_count_medium, 
+            config.task_count_easy
+        )
         player_tasks_to_send = []
         
         if player.id in imposter_ids:

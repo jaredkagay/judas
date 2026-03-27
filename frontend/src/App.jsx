@@ -74,6 +74,10 @@ function App() {
 
   const [organizerState, setOrganizerState] = useState({ phase: 'Lobby', players: [] });
 
+  const [configTasksHard, setConfigTasksHard] = useState(1);
+  const [configTasksMedium, setConfigTasksMedium] = useState(2);
+  const [configTasksEasy, setConfigTasksEasy] = useState(3);
+
   const ws = useRef(null);
 
   useEffect(() => {
@@ -368,6 +372,9 @@ function App() {
         setConfigCooldown(tmpl.cooldown_sec);
         setConfigDiscussionTime(tmpl.discussion_time_sec || 60); 
         setConfigVotingTime(tmpl.voting_time_sec || 30);
+        setConfigTasksHard(tmpl.task_count_hard || 1);
+        setConfigTasksMedium(tmpl.task_count_medium || 2);
+        setConfigTasksEasy(tmpl.task_count_easy || 3);
       }
       const taskRes = await fetch(`${import.meta.env.VITE_API_URL}/tasks/${hostId}`);
       if (taskRes.ok) {
@@ -392,7 +399,10 @@ function App() {
         imposter_count: configImposters,
         cooldown_sec: configCooldown,
         discussion_time_sec: configDiscussionTime,
-        voting_time_sec: configVotingTime
+        voting_time_sec: configVotingTime,
+        task_count_hard: configTasksHard,
+        task_count_medium: configTasksMedium,
+        task_count_easy: configTasksEasy
       })
     });
     alert("Mission parameters saved!");
@@ -463,7 +473,10 @@ function App() {
           imposter_count: configImposters, 
           cooldown_sec: configCooldown,
           discussion_time_sec: configDiscussionTime,
-          voting_time_sec: configVotingTime
+          voting_time_sec: configVotingTime,
+          task_count_hard: configTasksHard,
+          task_count_medium: configTasksMedium,
+          task_count_easy: configTasksEasy
         })
       });
       const data = await response.json();
@@ -485,7 +498,10 @@ function App() {
         imposter_count: configImposters, 
         cooldown_sec: configCooldown,
         discussion_time_sec: configDiscussionTime,
-        voting_time_sec: configVotingTime
+        voting_time_sec: configVotingTime,
+        task_count_hard: configTasksHard,
+        task_count_medium: configTasksMedium,
+        task_count_easy: configTasksEasy
       })
     });
   };
@@ -650,6 +666,9 @@ function App() {
           handleHostGame={handleHostGame} setView={setView}
           roomCode={roomCode} playerList={playerList} startGame={startGame}
           kickPlayer={kickPlayer} gameLogs={gameLogs}
+          configTasksHard={configTasksHard} setConfigTasksHard={setConfigTasksHard}
+          configTasksMedium={configTasksMedium} setConfigTasksMedium={setConfigTasksMedium}
+          configTasksEasy={configTasksEasy} setConfigTasksEasy={setConfigTasksEasy}
         />
       )}
 

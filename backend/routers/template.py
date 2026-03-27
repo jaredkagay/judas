@@ -24,5 +24,9 @@ def update_template(host_id: int, config: schemas.TemplateUpdate, db: Session = 
     template.cooldown_sec = config.cooldown_sec
     template.discussion_time_sec = config.discussion_time_sec
     template.voting_time_sec = config.voting_time_sec
+    template.task_count_hard = config.task_count_hard
+    template.task_count_medium = config.task_count_medium
+    template.task_count_easy = config.task_count_easy
+    
     db.commit()
     return template

@@ -16,7 +16,10 @@ export default function HostDashboard(props) {
     dictionaryTasks, editingTaskId, startEditTask, deleteTask, 
     newTaskName, setNewTaskName, newTaskLocation, setNewTaskLocation, 
     newTaskDescription, setNewTaskDescription, newTaskDifficulty, 
-    setNewTaskDifficulty, saveTask, cancelEdit
+    setNewTaskDifficulty, saveTask, cancelEdit,
+    configTasksHard, setConfigTasksHard,
+    configTasksMedium, setConfigTasksMedium,
+    configTasksEasy, setConfigTasksEasy,
   } = props;
 
   return (
@@ -40,11 +43,16 @@ export default function HostDashboard(props) {
               startGame={startGame} playerList={playerList} kickPlayer={kickPlayer} 
           />
           <GameSettingsPanel 
-              configImposters={configImposters} setConfigImposters={setConfigImposters}
-              configCooldown={configCooldown} setConfigCooldown={setConfigCooldown}
-              configDiscussionTime={configDiscussionTime} setConfigDiscussionTime={setConfigDiscussionTime}
-              configVotingTime={configVotingTime} setConfigVotingTime={setConfigVotingTime}
-              saveTemplateSettings={saveTemplateSettings}
+            configImposters={configImposters} setConfigImposters={setConfigImposters}
+            configCooldown={configCooldown} setConfigCooldown={setConfigCooldown}
+            configDiscussionTime={configDiscussionTime} setConfigDiscussionTime={setConfigDiscussionTime}
+            configVotingTime={configVotingTime} setConfigVotingTime={setConfigVotingTime}
+            
+            configTasksHard={configTasksHard} setConfigTasksHard={setConfigTasksHard}
+            configTasksMedium={configTasksMedium} setConfigTasksMedium={setConfigTasksMedium}
+            configTasksEasy={configTasksEasy} setConfigTasksEasy={setConfigTasksEasy}
+            
+            saveTemplateSettings={saveTemplateSettings}
           />
         </div>
 
