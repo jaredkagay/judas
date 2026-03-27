@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './PlayerDashboard.css';
 import DirectivesView from './DirectivesView';
 import FatalitySystemView from './FatalitySystemView';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function PlayerDashboard({
   role, showRoleReveal, setShowRoleReveal, teammates,
@@ -13,6 +14,7 @@ export default function PlayerDashboard({
   const [activeTab, setActiveTab] = useState('main'); 
   const [corpseInput, setCorpseInput] = useState("");
   const [selectingKiller, setSelectingKiller] = useState(false);
+  const [mapFloor, setMapFloor] = useState('downstairs');
 
   const handleReportSubmit = () => {
     if (corpseInput.length === 3) {
@@ -129,33 +131,21 @@ export default function PlayerDashboard({
                     {activeTab === 'main' && (
                     <div className="dashboard-grid">
                         <button className="square-btn" onClick={() => setActiveTab('tasks')}>
-                            <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
-                            <span className="btn-label">DIRECTIVES</span>
+                            <img src="/tasks.png" alt="Directives" className="btn-icon" />
                         </button>
                         
                         <button className="square-btn" onClick={() => setActiveTab('map')}>
-                            <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            <span className="btn-label">INTEL MAP</span>
+                            <img src="/map.png" alt="Map" className="btn-icon" />
                         </button>
 
                         {isAlive && (
                         <>
                             <button className="square-btn btn-danger" onClick={() => setActiveTab('report')}>
-                                <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <span className="btn-label">REPORT BODY</span>
+                              <img src="/report.png" alt="Report" className="btn-icon" />
                             </button>
                             
                             <button className="square-btn btn-danger" onClick={() => { setActiveTab('deaths'); setSelectingKiller(false); }}>
-                              <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                              </svg>
-                              <span className="btn-label">CASUALTIES</span>
+                              <img src="/kill.png" alt="Kill" className="btn-icon" />
                           </button>
                         </>
                         )}
@@ -191,10 +181,48 @@ export default function PlayerDashboard({
                     )}
 
                     {activeTab === 'map' && (
-                    <div className="glass-panel text-center">
-                        <h2 style={{ color: 'var(--text-primary)', marginBottom: '20px' }}>INTEL MAP</h2>
-                        <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '30px' }}>[UPLINK IN PROGRESS]</p>
-                        <button className="btn-primary" onClick={() => setActiveTab('main')} style={{ width: '100%' }}>BACK</button>
+                    <div className="glass-panel text-center map-panel">
+                        <h2 style={{ color: 'var(--text-primary)', marginBottom: '16px', letterSpacing: '2px' }}>INTEL MAP</h2>
+                        
+                        {/* Floor Toggle Slider */}
+                        <div className="floor-toggle">
+                            <button 
+                                className={`toggle-btn ${mapFloor === 'downstairs' ? 'active' : ''}`}
+                                onClick={() => setMapFloor('downstairs')}
+                            >
+                                DOWNSTAIRS
+                            </button>
+                            <button 
+                                className={`toggle-btn ${mapFloor === 'upstairs' ? 'active' : ''}`}
+                                onClick={() => setMapFloor('upstairs')}
+                            >
+                                UPSTAIRS
+                            </button>
+                        </div>
+
+                        {/* Mobile-Friendly Zoomable Container */}
+                        <div className="map-image-container">
+                            <TransformWrapper
+                                initialScale={1}
+                                minScale={1}
+                                maxScale={5}
+                                centerOnInit={true}
+                                wheel={{ step: 0.1 }} // Allows smooth scrolling on desktop too
+                            >
+                                <TransformComponent wrapperClass="map-transform-wrapper">
+                                    <img 
+                                        // Update these paths to where you saved your images in the public folder!
+                                        src={mapFloor === 'upstairs' ? '/map-upstairs.png' : '/map-downstairs.png'} 
+                                        alt={`Map of ${mapFloor}`} 
+                                        className="map-image" 
+                                    />
+                                </TransformComponent>
+                            </TransformWrapper>
+                        </div>
+
+                        <p className="map-hint">Pinch to zoom, drag to pan</p>
+
+                        <button className="btn-primary" onClick={() => setActiveTab('main')} style={{ width: '100%', marginTop: '16px' }}>BACK TO DASHBOARD</button>
                     </div>
                     )}
                 </>
